@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settlement Sheet</title>
+  <style>
+    :root {
+      --bg: #0b0b0b;
+      --panel: #141414;
+      --panel2: #101010;
+      --text: #f2f2f2;
+      --muted: #bdbdbd;
+      --border: #2a2a2a;
+      --accent: #e53935;
+      --ok: #2ecc71;
+      --warn: #f39c12;
+      --danger: #ff4d4d;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      padding: 18px 16px 12px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #111 0%, #0b0b0b 100%);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .wrap { max-width: 1100px; margin: 0 auto; }
+
+    .topRow {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0.4px;
+    }
+
+    .sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    .toolbar .group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      width: 100%;
+    }
+
+    select, input, textarea, button {
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--panel2);
+      color: var(--text);
+      outline: none;
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 700;
+      border: none;
+      background: var(--accent);
+      padding: 10px 14px;
+    }
+
+    button.secondary {
+      background: #232323;
+      border: 1px solid var(--border);
+      font-weight: 700;
+    }
+
+    button.ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    button.danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    button:active { transform: translateY(1px); }
+
+    main {
+      padding: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    @media (min-width: 900px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+      .span2 { grid-column: span 2; }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .cardTitle {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .cardTitle h2 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0.3px;
+    }
+
+    .pill {
+      font-size: 12px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #101010;
+      white-space: nowrap;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .row > * { flex: 1; min-width: 160px; }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 90px;
+      resize: vertical;
+      line-height: 1.35;
+    }
+
+    .twoCol {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    @media (min-width: 900px) {
+      .twoCol { grid-template-columns: 1fr 1fr; }
+    }
+
+    .tracker {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tracker .value {
+      font-size: 18px;
+      font-weight: 800;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #101010;
+      min-width: 96px;
+      text-align: center;
+    }
+
+    .smallBtn {
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: #232323;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-weight: 800;
+      width: auto;
+      min-width: 44px;
+    }
+
+    .smallBtn.ok { background: rgba(46, 204, 113, 0.15); border-color: rgba(46,204,113,0.35); }
+    .smallBtn.warn { background: rgba(243, 156, 18, 0.15); border-color: rgba(243,156,18,0.35); }
+
+    .listAdd {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 520px) {
+      .listAdd { grid-template-columns: 1fr; }
+      .listAdd button { width: 100%; }
+    }
+
+    .list {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .item {
+      border: 1px solid var(--border);
+      background: #101010;
+      border-radius: 14px;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .itemTop {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .itemName {
+      font-weight: 800;
+      font-size: 14px;
+      line-height: 1.2;
+    }
+
+    .itemNote {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.25;
+      white-space: pre-wrap;
+    }
+
+    .itemBtns {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .tinyBtn {
+      padding: 6px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      background: #232323;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-weight: 800;
+      width: auto;
+    }
+
+    .tinyBtn.danger {
+      background: rgba(255, 77, 77, 0.15);
+      border-color: rgba(255,77,77,0.35);
+      color: #fff;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .status {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 10px 0;
+    }
+
+    .footerSpace { height: 28px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="topRow">
+        <div>
+          <h1>Settlement Sheet</h1>
+          <p class="sub">Everything saves automatically. Export a backup any time.</p>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="group">
+          <div style="flex: 2; min-width: 220px;">
+            <label for="settlementSelect">Settlement</label>
+            <select id="settlementSelect"></select>
+          </div>
+
+          <div style="flex: 1; min-width: 170px;">
+            <label>&nbsp;</label>
+            <button class="secondary" id="newSettlementBtn">+ New Settlement</button>
+          </div>
+
+          <div style="flex: 1; min-width: 170px;">
+            <label>&nbsp;</label>
+            <button class="ghost" id="exportBtn">Export Save</button>
+          </div>
+
+          <div style="flex: 1; min-width: 170px;">
+            <label>&nbsp;</label>
+            <button class="ghost" id="importBtn">Import Save</button>
+            <input id="importFile" type="file" accept="application/json" style="display:none;" />
+          </div>
+        </div>
+
+        <div class="status" id="saveStatus">Loaded.</div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <div class="grid">
+        <!-- Settlement Header -->
+        <section class="card span2">
+          <div class="cardTitle">
+            <h2>Settlement</h2>
+            <span class="pill" id="settlementIdPill">ID: —</span>
+          </div>
+
+          <div class="twoCol">
+            <div>
+              <label for="settlementName">Settlement: __________________</label>
+              <input id="settlementName" placeholder="Enter settlement name..." />
+              <div class="hint">Tip: this name is what everyone will recognize.</div>
+            </div>
+
+            <div>
+              <label>In-Game Year</label>
+              <div class="tracker">
+                <button class="smallBtn warn" id="yearDown" title="Decrease year">–</button>
+                <div class="value" id="yearValue">1</div>
+                <button class="smallBtn ok" id="yearUp" title="Increase year">+</button>
+              </div>
+
+              <div style="height: 10px;"></div>
+
+              <label>Population</label>
+              <div class="tracker">
+                <button class="smallBtn warn" id="popDown" title="Decrease population">–</button>
+                <div class="value" id="popValue">0</div>
+                <button class="smallBtn ok" id="popUp" title="Increase population">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <label for="settlementNotes">Settlement Notes</label>
+          <textarea id="settlementNotes" placeholder="Anything important for the whole group..."></textarea>
+
+          <div class="hint">Auto-saves as you type.</div>
+        </section>
+
+        <!-- Shared Lists -->
+        <section class="card">
+          <div class="cardTitle">
+            <h2>Gear</h2>
+            <span class="pill" id="count-gear">0</span>
+          </div>
+          <div class="listAdd">
+            <input id="add-gear-name" placeholder="Gear name..." />
+            <input id="add-gear-note" placeholder="Notes (optional)..." />
+            <button class="secondary" data-add="gear">Add</button>
+          </div>
+          <ul class="list" id="list-gear"></ul>
+        </section>
+
+        <section class="card">
+          <div class="cardTitle">
+            <h2>Resources</h2>
+            <span class="pill" id="count-resources">0</span>
+          </div>
+          <div class="listAdd">
+            <input id="add-resources-name" placeholder="Resource name..." />
+            <input id="add-resources-note" placeholder="Notes (optional)..." />
+            <button class="secondary" data-add="resources">Add</button>
+          </div>
+          <ul class="list" id="list-resources"></ul>
+        </section>
+
+        <section class="card">
+          <div class="cardTitle">
+            <h2>Locations</h2>
+            <span class="pill" id="count-locations">0</span>
+          </div>
+          <div class="listAdd">
+            <input id="add-locations-name" placeholder="Location..." />
+            <input id="add-locations-note" placeholder="Notes (optional)..." />
+            <button class="secondary" data-add="locations">Add</button>
+          </div>
+          <ul class="list" id="list-locations"></ul>
+        </section>
+
+        <section class="card">
+          <div class="cardTitle">
+            <h2>Innovations</h2>
+            <span class="pill" id="count-innovations">0</span>
+          </div>
+          <div class="listAdd">
+            <input id="add-innovations-name" placeholder="Innovation..." />
+            <input id="add-innovations-note" placeholder="Notes (optional)..." />
+            <button class="secondary" data-add="innovations">Add</button>
+          </div>
+          <ul class="list" id="list-innovations"></ul>
+        </section>
+
+        <section class="card">
+          <div class="cardTitle">
+            <h2>Quarry</h2>
+            <span class="pill" id="count-quarry">0</span>
+          </div>
+          <div class="listAdd">
+            <input id="add-quarry-name" placeholder="Quarry target..." />
+            <input id="add-quarry-note" placeholder="Notes (optional)..." />
+            <button class="secondary" data-add="quarry">Add</button>
+          </div>
+          <ul class="list" id="list-quarry"></ul>
+        </section>
+
+        <section class="card">
+          <div class="cardTitle">
+            <h2>Nemesis</h2>
+            <span class="pill" id="count-nemesis">0</span>
+          </div>
+          <div class="listAdd">
+            <input id="add-nemesis-name" placeholder="Nemesis..." />
+            <input id="add-nemesis-note" placeholder="Notes (optional)..." />
+            <button class="secondary" data-add="nemesis">Add</button>
+          </div>
+          <ul class="list" id="list-nemesis"></ul>
+        </section>
+
+        <section class="card span2">
+          <div class="cardTitle">
+            <h2>Principles</h2>
+            <span class="pill" id="count-principles">0</span>
+          </div>
+          <div class="listAdd">
+            <input id="add-principles-name" placeholder="Principle..." />
+            <input id="add-principles-note" placeholder="Notes (optional)..." />
+            <button class="secondary" data-add="principles">Add</button>
+          </div>
+          <ul class="list" id="list-principles"></ul>
+
+          <div class="divider"></div>
+
+          <div class="row">
+            <button class="danger" id="deleteSettlementBtn" style="flex:1; min-width: 220px;">Delete This Settlement</button>
+            <button class="ghost" id="resetCurrentBtn" style="flex:1; min-width: 220px;">Reset Lists (Keep Name)</button>
+          </div>
+
+          <div class="hint">Delete removes it from this device’s save. Export first if you want a backup.</div>
+        </section>
+      </div>
+
+      <div class="footerSpace"></div>
+    </div>
+  </main>
+
+  <script>
+    /***********************
+     * Simple Settlement Sheet
+     * - Local save (localStorage)
+     * - Multi-settlement support
+     * - Export/Import JSON
+     ***********************/
+
+    const STORAGE_KEY = "settlement_sheet_v1";
+
+    const defaultSettlement = () => ({
+      id: crypto.randomUUID(),
+      name: "New Settlement",
+      year: 1,
+      population: 0,
+      notes: "",
+      lists: {
+        gear: [],
+        resources: [],
+        locations: [],
+        innovations: [],
+        quarry: [],
+        nemesis: [],
+        principles: []
+      }
+    });
+
+    const state = {
+      settlements: [],
+      activeSettlementId: null
+    };
+
+    // UI elements
+    const el = {
+      settlementSelect: document.getElementById("settlementSelect"),
+      settlementIdPill: document.getElementById("settlementIdPill"),
+
+      newSettlementBtn: document.getElementById("newSettlementBtn"),
+      exportBtn: document.getElementById("exportBtn"),
+      importBtn: document.getElementById("importBtn"),
+      importFile: document.getElementById("importFile"),
+
+      settlementName: document.getElementById("settlementName"),
+      settlementNotes: document.getElementById("settlementNotes"),
+
+      yearValue: document.getElementById("yearValue"),
+      yearUp: document.getElementById("yearUp"),
+      yearDown: document.getElementById("yearDown"),
+
+      popValue: document.getElementById("popValue"),
+      popUp: document.getElementById("popUp"),
+      popDown: document.getElementById("popDown"),
+
+      saveStatus: document.getElementById("saveStatus"),
+
+      deleteSettlementBtn: document.getElementById("deleteSettlementBtn"),
+      resetCurrentBtn: document.getElementById("resetCurrentBtn")
+    };
+
+    const SECTIONS = [
+      "gear",
+      "resources",
+      "locations",
+      "innovations",
+      "quarry",
+      "nemesis",
+      "principles"
+    ];
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          const s = defaultSettlement();
+          state.settlements = [s];
+          state.activeSettlementId = s.id;
+          saveState("Initialized new save.");
+          return;
+        }
+
+        const parsed = JSON.parse(raw);
+
+        // basic validation
+        if (!parsed || !Array.isArray(parsed.settlements) || !parsed.activeSettlementId) {
+          throw new Error("Invalid save format");
+        }
+
+        state.settlements = parsed.settlements;
+        state.activeSettlementId = parsed.activeSettlementId;
+
+        // Ensure at least 1 settlement exists
+        if (state.settlements.length === 0) {
+          const s = defaultSettlement();
+          state.settlements = [s];
+          state.activeSettlementId = s.id;
+        }
+
+      } catch (err) {
+        console.warn("Save load failed, starting fresh:", err);
+        const s = defaultSettlement();
+        state.settlements = [s];
+        state.activeSettlementId = s.id;
+        saveState("Recovered from bad save.");
+      }
+    }
+
+    function saveState(message = "Saved.") {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        settlements: state.settlements,
+        activeSettlementId: state.activeSettlementId
+      }));
+      setStatus(message);
+    }
+
+    let statusTimer = null;
+    function setStatus(msg) {
+      el.saveStatus.textContent = msg;
+      if (statusTimer) clearTimeout(statusTimer);
+      statusTimer = setTimeout(() => {
+        el.saveStatus.textContent = "Saved.";
+      }, 1200);
+    }
+
+    function getActiveSettlement() {
+      return state.settlements.find(s => s.id === state.activeSettlementId) || state.settlements[0];
+    }
+
+    function setActiveSettlement(id) {
+      state.activeSettlementId = id;
+      saveState("Switched settlement.");
+      renderAll();
+    }
+
+    function renderSettlementSelect() {
+      el.settlementSelect.innerHTML = "";
+      state.settlements.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s.id;
+        opt.textContent = s.name || "(Unnamed Settlement)";
+        if (s.id === state.activeSettlementId) opt.selected = true;
+        el.settlementSelect.appendChild(opt);
+      });
+    }
+
+    function renderHeaderFields() {
+      const s = getActiveSettlement();
+
+      el.settlementIdPill.textContent = `ID: ${s.id.slice(0, 8)}`;
+      el.settlementName.value = s.name ?? "";
+      el.settlementNotes.value = s.notes ?? "";
+
+      el.yearValue.textContent = s.year ?? 1;
+      el.popValue.textContent = s.population ?? 0;
+    }
+
+    function createListItemElement(section, item, index) {
+      const li = document.createElement("li");
+      li.className = "item";
+
+      const top = document.createElement("div");
+      top.className = "itemTop";
+
+      const left = document.createElement("div");
+
+      const name = document.createElement("div");
+      name.className = "itemName";
+      name.textContent = item.name || "(Unnamed)";
+
+      const note = document.createElement("div");
+      note.className = "itemNote";
+      note.textContent = item.note ? item.note : "";
+
+      left.appendChild(name);
+      if (item.note) left.appendChild(note);
+
+      const btns = document.createElement("div");
+      btns.className = "itemBtns";
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "tinyBtn";
+      editBtn.textContent = "Edit";
+      editBtn.addEventListener("click", () => onEditItem(section, index));
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "tinyBtn danger";
+      delBtn.textContent = "Delete";
+      delBtn.addEventListener("click", () => onDeleteItem(section, index));
+
+      btns.appendChild(editBtn);
+      btns.appendChild(delBtn);
+
+      top.appendChild(left);
+      top.appendChild(btns);
+
+      li.appendChild(top);
+      return li;
+    }
+
+    function renderSection(section) {
+      const s = getActiveSettlement();
+      const listEl = document.getElementById(`list-${section}`);
+      const countEl = document.getElementById(`count-${section}`);
+
+      const items = s.lists?.[section] ?? [];
+      countEl.textContent = items.length;
+
+      listEl.innerHTML = "";
+      items.forEach((item, idx) => {
+        listEl.appendChild(createListItemElement(section, item, idx));
+      });
+    }
+
+    function renderAll() {
+      // Ensure the active settlement exists
+      const active = getActiveSettlement();
+      state.activeSettlementId = active.id;
+
+      renderSettlementSelect();
+      renderHeaderFields();
+
+      SECTIONS.forEach(renderSection);
+    }
+
+    function addItem(section, name, note) {
+      const s = getActiveSettlement();
+      if (!s.lists) s.lists = {};
+      if (!Array.isArray(s.lists[section])) s.lists[section] = [];
+
+      s.lists[section].push({
+        name: (name || "").trim(),
+        note: (note || "").trim()
+      });
+
+      saveState(`Added to ${section}.`);
+      renderSection(section);
+      renderSettlementSelect();
+    }
+
+    function onDeleteItem(section, index) {
+      const s = getActiveSettlement();
+      const items = s.lists?.[section] ?? [];
+      if (!items[index]) return;
+
+      const ok = confirm(`Delete "${items[index].name}" from ${section}?`);
+      if (!ok) return;
+
+      items.splice(index, 1);
+      saveState(`Deleted from ${section}.`);
+      renderSection(section);
+    }
+
+    function onEditItem(section, index) {
+      const s = getActiveSettlement();
+      const items = s.lists?.[section] ?? [];
+      const item = items[index];
+      if (!item) return;
+
+      const newName = prompt("Edit name:", item.name ?? "");
+      if (newName === null) return;
+
+      const newNote = prompt("Edit notes (optional):", item.note ?? "");
+      if (newNote === null) return;
+
+      item.name = newName.trim();
+      item.note = newNote.trim();
+
+      saveState(`Edited ${section}.`);
+      renderSection(section);
+      renderSettlementSelect();
+    }
+
+    function createNewSettlement() {
+      const s = defaultSettlement();
+      const name = prompt("Settlement name:", "New Settlement");
+      if (name !== null && name.trim()) s.name = name.trim();
+
+      state.settlements.unshift(s);
+      state.activeSettlementId = s.id;
+      saveState("Created new settlement.");
+      renderAll();
+    }
+
+    function deleteCurrentSettlement() {
+      if (state.settlements.length <= 1) {
+        alert("You need at least one settlement. Create another first.");
+        return;
+      }
+
+      const s = getActiveSettlement();
+      const ok = confirm(`Delete "${s.name}"? This removes it from this device.`);
+      if (!ok) return;
+
+      state.settlements = state.settlements.filter(x => x.id !== s.id);
+      state.activeSettlementId = state.settlements[0].id;
+
+      saveState("Deleted settlement.");
+      renderAll();
+    }
+
+    function resetCurrentSettlementLists() {
+      const s = getActiveSettlement();
+      const ok = confirm(`Reset all lists for "${s.name}" (keeps name/year/population/notes)?`);
+      if (!ok) return;
+
+      s.lists = {
+        gear: [],
+        resources: [],
+        locations: [],
+        innovations: [],
+        quarry: [],
+        nemesis: [],
+        principles: []
+      };
+
+      saveState("Reset lists.");
+      renderAll();
+    }
+
+    function exportSave() {
+      const data = {
+        settlements: state.settlements,
+        activeSettlementId: state.activeSettlementId,
+        exportedAt: new Date().toISOString()
+      };
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `settlement-save-${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      URL.revokeObjectURL(url);
+      setStatus("Exported save file.");
+    }
+
+    function importSaveFile(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+
+          if (!parsed || !Array.isArray(parsed.settlements) || !parsed.activeSettlementId) {
+            throw new Error("Invalid save file");
+          }
+
+          state.settlements = parsed.settlements;
+          state.activeSettlementId = parsed.activeSettlementId;
+
+          // sanity check
+          if (!state.settlements.some(s => s.id === state.activeSettlementId)) {
+            state.activeSettlementId = state.settlements[0]?.id ?? null;
+          }
+          if (!state.activeSettlementId) {
+            const s = defaultSettlement();
+            state.settlements = [s];
+            state.activeSettlementId = s.id;
+          }
+
+          saveState("Imported save file.");
+          renderAll();
+        } catch (err) {
+          alert("Import failed. That file doesn't look like a valid save.");
+          console.warn(err);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Wire events
+    el.settlementSelect.addEventListener("change", (e) => setActiveSettlement(e.target.value));
+    el.newSettlementBtn.addEventListener("click", createNewSettlement);
+
+    el.settlementName.addEventListener("input", () => {
+      const s = getActiveSettlement();
+      s.name = el.settlementName.value.trim() || "Unnamed Settlement";
+      saveState("Updated settlement name.");
+      renderSettlementSelect();
+    });
+
+    el.settlementNotes.addEventListener("input", () => {
+      const s = getActiveSettlement();
+      s.notes = el.settlementNotes.value;
+      saveState("Updated notes.");
+    });
+
+    el.yearUp.addEventListener("click", () => {
+      const s = getActiveSettlement();
+      s.year = Math.max(0, (s.year ?? 1) + 1);
+      saveState("Updated year.");
+      renderHeaderFields();
+    });
+
+    el.yearDown.addEventListener("click", () => {
+      const s = getActiveSettlement();
+      s.year = Math.max(0, (s.year ?? 1) - 1);
+      saveState("Updated year.");
+      renderHeaderFields();
+    });
+
+    el.popUp.addEventListener("click", () => {
+      const s = getActiveSettlement();
+      s.population = Math.max(0, (s.population ?? 0) + 1);
+      saveState("Updated population.");
+      renderHeaderFields();
+    });
+
+    el.popDown.addEventListener("click", () => {
+      const s = getActiveSettlement();
+      s.population = Math.max(0, (s.population ?? 0) - 1);
+      saveState("Updated population.");
+      renderHeaderFields();
+    });
+
+    document.querySelectorAll("[data-add]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const section = btn.getAttribute("data-add");
+        const nameInput = document.getElementById(`add-${section}-name`);
+        const noteInput = document.getElementById(`add-${section}-note`);
+
+        const name = (nameInput.value || "").trim();
+        const note = (noteInput.value || "").trim();
+
+        if (!name) {
+          alert("Add a name first.");
+          return;
+        }
+
+        addItem(section, name, note);
+        nameInput.value = "";
+        noteInput.value = "";
+        nameInput.focus();
+      });
+    });
+
+    // Enter-to-add on name inputs
+    SECTIONS.forEach(section => {
+      const nameInput = document.getElementById(`add-${section}-name`);
+      const noteInput = document.getElementById(`add-${section}-note`);
+      [nameInput, noteInput].forEach(inp => {
+        inp.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            document.querySelector(`[data-add="${section}"]`).click();
+          }
+        });
+      });
+    });
+
+    el.deleteSettlementBtn.addEventListener("click", deleteCurrentSettlement);
+    el.resetCurrentBtn.addEventListener("click", resetCurrentSettlementLists);
+
+    el.exportBtn.addEventListener("click", exportSave);
+
+    el.importBtn.addEventListener("click", () => el.importFile.click());
+    el.importFile.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      importSaveFile(file);
+      e.target.value = "";
+    });
+
+    // Boot
+    loadState();
+    renderAll();
+  </script>
+</body>
+</html>
