@@ -1043,7 +1043,7 @@
   const firebaseApp = initializeApp(firebaseConfig);
   const db = getFirestore(firebaseApp);
 
-  // Firestore-backed library sections (falls back to LOCAL_LIBRARY per section if loading fails/empty).
+  // Firestore-backed library sections (Firestore-only mode for all library sections).
   const FIRESTORE_LIBRARY_SECTION_LIST = ["gear", "resources", "locations", "innovations", "principles", "quarry", "nemesis"];
   const FIRESTORE_LIBRARY_SECTIONS = new Set(FIRESTORE_LIBRARY_SECTION_LIST);
   const firestoreLibraryCache = Object.fromEntries(FIRESTORE_LIBRARY_SECTION_LIST.map(section => [section, []]));
@@ -1065,56 +1065,12 @@
   const ALL_SECTIONS = ["gear","resources","locations","innovations","quarry","nemesis","principles"];
   const LIBRARY_SECTIONS = new Set(["gear","resources","locations","innovations","principles","quarry","nemesis"]);
 
-  const LOCAL_LIBRARY = {
-    gear: [
-      { id: "gear_bone_dagger", name: "Bone Dagger", tags: ["weapon","bone","starter"] },
-      { id: "gear_stone_axe", name: "Stone Axe", tags: ["weapon","stone"] },
-      { id: "gear_hide_armor", name: "Hide Armor", tags: ["armor","hide","starter"] },
-      { id: "gear_leather_kit", name: "Leather Kit", tags: ["utility","leather"] },
-    ],
-    resources: [
-      { id: "res_bone", name: "Bone", tags: ["basic","material"] },
-      { id: "res_hide", name: "Hide", tags: ["basic","material"] },
-      { id: "res_organ", name: "Organ", tags: ["basic","material"] },
-      { id: "res_iron", name: "Iron", tags: ["metal","rare"] },
-      { id: "res_stone", name: "Stone", tags: ["material","common"] },
-      { id: "res_cloth", name: "Cloth", tags: ["material","common"] },
-    ],
-    locations: [
-      { id: "loc_bone_smith", name: "Bone Smith", tags: ["crafting"] },
-      { id: "loc_catarium", name: "Catarium", tags: ["hunt","special"] },
-      { id: "loc_skinnery", name: "Skinnery", tags: ["crafting"] },
-      { id: "loc_weapon_crafter", name: "Weapon Crafter", tags: ["crafting"] },
-    ],
-    innovations: [
-      { id: "inn_language", name: "Language", tags: ["core","settlement"] },
-      { id: "inn_drums", name: "Drums", tags: ["culture"] },
-      { id: "inn_saga", name: "Saga", tags: ["story"] },
-      { id: "inn_crafting", name: "Crafting", tags: ["core","gear"] },
-    ],
-    principles: [
-      { id: "pri_life", name: "Principle of Life", tags: ["principle","choice"] },
-      { id: "pri_death", name: "Principle of Death", tags: ["principle","choice"] },
-      { id: "pri_society", name: "Principle of Society", tags: ["principle","choice"] },
-      { id: "pri_conviction", name: "Principle of Conviction", tags: ["principle","choice"] },
-    ],
-    quarry: [
-      { id: "qua_white", name: "Quarry: White", tags: ["quarry","low"] },
-      { id: "qua_black", name: "Quarry: Black", tags: ["quarry","mid"] },
-      { id: "qua_red", name: "Quarry: Red", tags: ["quarry","high"] },
-    ],
-    nemesis: [
-      { id: "nem_butcher", name: "Nemesis: Butcher", tags: ["nemesis","boss"] },
-      { id: "nem_kingsman", name: "Nemesis: Kingsman", tags: ["nemesis","boss"] },
-      { id: "nem_hand", name: "Nemesis: Hand", tags: ["nemesis","boss"] },
-    ],
-  };
+  // Firestore-only library mode (no local placeholder fallback).
+  const LOCAL_LIBRARY = {};
 
   function getLibrarySource(section) {
-    if (FIRESTORE_LIBRARY_SECTIONS.has(section) && firestoreLibraryLoaded[section]) {
-      return firestoreLibraryCache[section] || [];
-    }
-    return LOCAL_LIBRARY[section] || [];
+    if (FIRESTORE_LIBRARY_SECTIONS.has(section)) return firestoreLibraryCache[section] || [];
+    return [];
   }
 
   function getLibrary(section) {
@@ -1123,10 +1079,8 @@
   }
 
   function getLibraryEntry(section, refId) {
-    if (FIRESTORE_LIBRARY_SECTIONS.has(section) && firestoreLibraryLoaded[section]) {
-      return firestoreLibraryIndex[section]?.get(refId) || null;
-    }
-    return (LOCAL_LIBRARY[section] || []).find(x => x.id === refId) || null;
+    if (FIRESTORE_LIBRARY_SECTIONS.has(section)) return firestoreLibraryIndex[section]?.get(refId) || null;
+    return null;
   }
 
   function getAllTags(section) {
@@ -1165,19 +1119,16 @@
         };
       }).filter(x => x.name);
 
-      if (items.length) {
-        firestoreLibraryCache[section] = items;
-        firestoreLibraryIndex[section] = new Map(items.map(x => [x.id, x]));
-        firestoreLibraryLoaded[section] = true;
-      } else {
-        // Empty collection: keep local fallback so the UI doesn't look broken
-        firestoreLibraryLoaded[section] = false;
-      }
+      firestoreLibraryCache[section] = items;
+      firestoreLibraryIndex[section] = new Map(items.map(x => [x.id, x]));
+      firestoreLibraryLoaded[section] = true;
 
       console.log(`[Firestore] ${section}: loaded ${items.length} item(s).`);
     } catch (err) {
+      firestoreLibraryCache[section] = [];
+      firestoreLibraryIndex[section] = new Map();
       firestoreLibraryLoaded[section] = false;
-      console.warn(`[Firestore] Failed to load ${section}; using local fallback.`, err);
+      console.warn(`[Firestore] Failed to load ${section}; section will be empty until Firestore is reachable.`, err);
     }
   }
 
@@ -3968,7 +3919,7 @@ function createListItemElement(section, item, index) {
 // Boot
   (async function boot() {
     loadState();
-    await preloadFirestoreLibrary(); // currently Resources only
+    await preloadFirestoreLibrary(); // load all library sections from Firestore
     renderAll();
     enhanceUI();
     setTab("settlement");
