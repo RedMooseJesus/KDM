@@ -1043,11 +1043,12 @@
   const firebaseApp = initializeApp(firebaseConfig);
   const db = getFirestore(firebaseApp);
 
-  // Start with Firestore for Resources only (safe test). Other sections still use local placeholders.
-  const FIRESTORE_LIBRARY_SECTIONS = new Set(["resources"]);
-  const firestoreLibraryCache = { resources: [] };
-  const firestoreLibraryIndex = { resources: new Map() };
-  const firestoreLibraryLoaded = { resources: false };
+  // Firestore-backed library sections (falls back to LOCAL_LIBRARY per section if loading fails/empty).
+  const FIRESTORE_LIBRARY_SECTION_LIST = ["gear", "resources", "locations", "innovations", "principles", "quarry", "nemesis"];
+  const FIRESTORE_LIBRARY_SECTIONS = new Set(FIRESTORE_LIBRARY_SECTION_LIST);
+  const firestoreLibraryCache = Object.fromEntries(FIRESTORE_LIBRARY_SECTION_LIST.map(section => [section, []]));
+  const firestoreLibraryIndex = Object.fromEntries(FIRESTORE_LIBRARY_SECTION_LIST.map(section => [section, new Map()]));
+  const firestoreLibraryLoaded = Object.fromEntries(FIRESTORE_LIBRARY_SECTION_LIST.map(section => [section, false]));
 
   /***********************
    * Settlement Sheet v6
@@ -1181,9 +1182,7 @@
   }
 
   async function preloadFirestoreLibrary() {
-    await Promise.all([
-      loadLibrarySectionFromFirestore("resources")
-    ]);
+    await Promise.all(FIRESTORE_LIBRARY_SECTION_LIST.map(loadLibrarySectionFromFirestore));
   }
 
   function makeYearTracker() {
