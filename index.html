@@ -1,0 +1,3979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settlement Sheet</title>
+
+  <style>
+    :root{
+      --bg:#0b0b0b;
+      --panel:#141414;
+      --panel2:#101010;
+      --text:#f2f2f2;
+      --muted:#bdbdbd;
+      --border:#2a2a2a;
+      --accent:#e53935;
+      --ok:#2ecc71;
+      --warn:#f39c12;
+      --danger:#ff4d4d;
+      --shadow:0 10px 30px rgba(0,0,0,0.35);
+      --radius:16px;
+    }
+
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    header{
+      padding:18px 16px 12px;
+      border-bottom:1px solid var(--border);
+      background:linear-gradient(180deg,#111 0%,#0b0b0b 100%);
+      position:static;
+}
+
+    .wrap{max-width:1100px;margin:0 auto;}
+    h1{margin:0;font-size:22px;letter-spacing:0.4px;}
+    .sub{margin:6px 0 0;color:var(--muted);font-size:13px;}
+
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:flex-end;
+      justify-content:space-between;
+      margin-top:12px;
+    }
+
+    .toolbarLeft,
+    .toolbarRight{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:flex-end;
+    }
+
+    /* Mobile toolbar: keep controls side-by-side */
+    @media (max-width: 640px){
+      .toolbarLeft,
+      .toolbarRight{
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        width:100%;
+        gap:10px;
+        align-items:end;
+      }
+      .toolbarLeft > div,
+      .toolbarRight > div{
+        min-width:0 !important;
+        width:100%;
+      }
+      .toolbarLeft select,
+      .toolbarLeft button,
+      .toolbarRight button{
+        width:100%;
+      }
+    }
+
+    /* Two-up rows (ex: Gender + Status) */
+    .twoCol{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      align-items:end;
+    }
+
+    label{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:6px;
+    }
+
+    select,input,textarea,button{
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:var(--panel2);
+      color:var(--text);
+      outline:none;
+      padding:10px 12px;
+      font-size:14px;
+    }
+
+    textarea{
+      width:100%;
+      resize:vertical;
+      line-height:1.35;
+      min-height:90px;
+    }
+
+    button{
+      cursor:pointer;
+      font-weight:800;
+      border:none;
+      background:var(--accent);
+      padding:10px 14px;
+    }
+
+    button.secondary{
+      background:#232323;
+      border:1px solid var(--border);
+      font-weight:800;
+    }
+
+    button.ghost{
+      background:transparent;
+      border:1px solid var(--border);
+      color:var(--muted);
+    }
+
+    button:active{transform:translateY(1px);}
+
+    .status{
+      width:100%;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:6px;
+    }
+
+    main{padding:16px;}
+
+    .tabs{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .tabBtn{
+      background:#191919;
+      border:1px solid var(--border);
+      color:var(--muted);
+      padding:8px 12px;
+      border-radius:999px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .tabBtn.active{
+      background:rgba(229,57,53,0.18);
+      border-color:rgba(229,57,53,0.45);
+      color:var(--text);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+
+    @media (min-width: 900px){
+      .grid{grid-template-columns:1fr 1fr;}
+      .span2{grid-column:span 2;}
+    }
+
+    .card{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:14px;
+      box-shadow:var(--shadow);
+    }
+
+    /* Accent stripes + collapsible sections */
+    .card{ position:relative; overflow:hidden; padding-left:16px; --stripe: rgba(229,57,53,0.65); }
+    .card::before{
+      content:"";
+      position:absolute;
+      left:0; top:0; bottom:0;
+      width:6px;
+      background:var(--stripe);
+      opacity:0.95;
+    }
+
+    .cardRight{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-left:auto;
+    }
+
+    .collapseToggle{
+      background:transparent;
+      border:1px solid var(--border);
+      color:var(--muted);
+      padding:6px 10px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:12px;
+    }
+    .collapseToggle:hover{ color:var(--text); }
+
+    .cardBody{ margin-top:0; }
+    .card.collapsed .cardBody{ display:none; }
+
+    .sheetSection{ position:relative; overflow:hidden; padding-left:16px; --stripe: rgba(229,57,53,0.35); }
+    .sheetSection::before{
+      content:"";
+      position:absolute;
+      left:0; top:0; bottom:0;
+      width:5px;
+      background:var(--stripe);
+      opacity:0.95;
+    }
+
+    .sectionRight{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-left:auto;
+    }
+
+    .sectionCollapseToggle{
+      background:transparent;
+      border:1px solid var(--border);
+      color:var(--muted);
+      padding:6px 10px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:12px;
+    }
+    .sectionCollapseToggle:hover{ color:var(--text); }
+
+    .sheetSectionBody{ margin-top:0; }
+    .sheetSection.collapsed .sheetSectionBody{ display:none; }
+
+
+    .cardTitle{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+
+    .cardTitle h2{
+      margin:0;
+      font-size:16px;
+      letter-spacing:0.3px;
+    }
+
+    .pill{
+      font-size:12px;
+      color:var(--muted);
+      border:1px solid var(--border);
+      padding:4px 8px;
+      border-radius:999px;
+      background:#101010;
+      white-space:nowrap;
+    }
+
+    .divider{
+      height:1px;
+      background:var(--border);
+      margin:10px 0;
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:flex-start;
+    }
+    .row > *{flex:1;min-width:170px;}
+
+    .hint{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:8px;
+    }
+
+    .settlementNameRow{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .settlementNameRow .nameLabel{
+      font-weight:900;
+      font-size:14px;
+      white-space:nowrap;
+    }
+
+    .settlementNameRow input{
+      flex:1;
+      min-width:220px;
+    }
+
+    .list{
+      list-style:none;
+      padding:0;
+      margin:10px 0 0;
+      display:grid;
+      gap:8px;
+    }
+
+    .item{
+      border:1px solid var(--border);
+      background:#101010;
+      border-radius:14px;
+      padding:10px;
+      display:grid;
+      gap:8px;
+    }
+
+    .itemTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .itemName{
+      font-weight:900;
+      font-size:14px;
+      line-height:1.2;
+    }
+
+    .itemNote{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.25;
+      white-space:pre-wrap;
+    }
+
+    .itemBtns{
+      display:flex;
+      gap:8px;
+      flex-shrink:0;
+    }
+
+    .tinyBtn{
+      padding:6px 10px;
+      border-radius:12px;
+      font-size:12px;
+      background:#232323;
+      border:1px solid var(--border);
+      color:var(--text);
+      font-weight:900;
+      width:auto;
+    }
+
+    .tinyBtn.danger{
+      background:rgba(255,77,77,0.15);
+      border-color:rgba(255,77,77,0.35);
+      color:#fff;
+    }
+
+    .tracker{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .tracker .value{
+      font-size:18px;
+      font-weight:900;
+      padding:8px 12px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:#101010;
+      min-width:96px;
+      text-align:center;
+    }
+
+    .smallBtn{
+      padding:8px 10px;
+      border-radius:12px;
+      background:#232323;
+      border:1px solid var(--border);
+      color:var(--text);
+      font-weight:900;
+      width:auto;
+      min-width:44px;
+    }
+
+    .smallBtn.ok{
+      background:rgba(46,204,113,0.15);
+      border-color:rgba(46,204,113,0.35);
+    }
+
+    .smallBtn.warn{
+      background:rgba(243,156,18,0.15);
+      border-color:rgba(243,156,18,0.35);
+    }
+
+    /* Year tracker */
+    .yearContainer{
+      display:grid;
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .yearRow{
+      border:1px solid var(--border);
+      background:#101010;
+      border-radius:14px;
+      padding:10px;
+      display:grid;
+      grid-template-columns:auto 70px 1fr;
+      gap:10px;
+      align-items:center;
+    }
+
+    @media (max-width: 520px){
+      .yearRow{grid-template-columns:auto 60px 1fr;}
+    }
+
+    .yearRow input[type="checkbox"]{
+      transform:scale(1.2);
+      width:auto;
+      padding:0;
+      margin:0;
+      accent-color: var(--accent);
+    }
+
+    .yearNum{
+      font-weight:900;
+      color:var(--text);
+      letter-spacing:0.3px;
+    }
+
+    .yearEvent{
+      width:100%;
+      min-height:38px;
+      background:#0f0f0f;
+    }
+
+    .yearRow.reached{
+      border-color:rgba(46,204,113,0.35);
+      background:rgba(46,204,113,0.05);
+    }
+
+    /* Population roster */
+    .roster{
+      list-style:none;
+      padding:0;
+      margin:10px 0 0;
+      display:grid;
+      gap:8px;
+    }
+
+    .rosterItem{
+      border:1px solid var(--border);
+      background:#101010;
+      border-radius:14px;
+      padding:10px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+    }
+
+    .rosterLeft{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+    }
+
+    .rosterName{
+      font-weight:900;
+      font-size:14px;
+    }
+
+    .rosterMeta{
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    /* Library pickers */
+    .picker{
+      display:grid;
+      gap:10px;
+    }
+
+    .chipRow{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .chip{
+      border:1px solid var(--border);
+      background:#191919;
+      color:var(--muted);
+      padding:6px 10px;
+      border-radius:999px;
+      font-weight:900;
+      font-size:12px;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .chip.active{
+      background:rgba(229,57,53,0.18);
+      border-color:rgba(229,57,53,0.45);
+      color:var(--text);
+    }
+
+    .resultsSelect{
+      width:100%;
+      min-height:180px;
+      padding:8px 10px;
+      background:#0f0f0f;
+    }
+
+    .footerSpace{height:28px;}
+    .hidden{display:none !important;}
+
+    /* Character Sheet (new) */
+    .selectedItem{
+      border-color: rgba(229,57,53,0.55) !important;
+      background: rgba(229,57,53,0.07) !important;
+    }
+
+    .sheetBody{
+      display:grid;
+      gap:12px;
+    }
+
+    .sheetGrid{
+      display:grid;
+      gap:10px;
+      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+      align-items:start;
+    }
+
+    .sheetHeaderLine{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:flex-end;
+    }
+
+    .sheetHeaderLine > div{flex:1; min-width:170px;}
+
+    .sheetH3{
+      margin:0;
+      font-size:14px;
+      font-weight:900;
+      color:var(--text);
+      letter-spacing:0.3px;
+    }
+
+    .sheetTinyHint{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:6px;
+      line-height:1.25;
+    }
+
+    
+    .miniCheck{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-top:8px;
+      padding:8px 10px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#0f0f0f;
+      color:var(--text);
+      font-size:13px;
+      font-weight:800;
+    }
+    .miniCheck input{
+      transform:scale(1.15);
+      accent-color: var(--accent);
+    }
+
+    .checkGrid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .checkItem{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      border:1px solid var(--border);
+      background:#0f0f0f;
+      padding:10px;
+      border-radius:14px;
+      line-height:1.2;
+    }
+
+    .checkItem input{
+      transform:scale(1.15);
+      accent-color: var(--accent);
+    }
+
+    .checkItem span{
+      font-weight:900;
+      font-size:13px;
+      color:var(--text);
+    }
+
+    .checkSubHint{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:6px;
+      line-height:1.25;
+    }
+.sheetSection{
+      border:1px solid var(--border);
+      background:#101010;
+      border-radius:14px;
+      padding:12px;
+    }
+
+    .sheetSectionTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+
+    .sheetSectionTitle .pill{
+      background:#0f0f0f;
+    }
+
+    .numInput{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:#0f0f0f;
+      color:var(--text);
+      font-weight:900;
+      font-size:14px;
+    }
+
+    .armorChecks{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      margin-top:6px;
+      flex-wrap:wrap;
+    }
+    .armorCheckItem{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      font-size:12px;
+      color:var(--muted);
+      user-select:none;
+    }
+    .armorCheckItem input{
+      transform:scale(1.15);
+      accent-color:var(--accent);
+    }
+
+
+    .miniTracker{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:nowrap;
+    }
+
+    .miniTracker .value{
+      font-size:18px;
+      font-weight:900;
+      padding:8px 12px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:#0f0f0f;
+      min-width:72px;
+      text-align:center;
+    }
+
+    .miniBtn{
+      padding:8px 10px;
+      border-radius:12px;
+      background:#232323;
+      border:1px solid var(--border);
+      color:var(--text);
+      font-weight:900;
+      min-width:44px;
+      width:auto;
+    }
+
+    .miniBtn.ok{
+      background:rgba(46,204,113,0.15);
+      border-color:rgba(46,204,113,0.35);
+    }
+
+    .miniBtn.warn{
+      background:rgba(243,156,18,0.15);
+      border-color:rgba(243,156,18,0.35);
+    }
+
+    .addRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:flex-end;
+      margin-top:10px;
+    }
+    .addRow > *{flex:1; min-width:160px;}
+
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="wrap">
+    <div>
+      <h1>Settlement Sheet</h1>
+      <p class="sub">Auto-saves on this device. Export a backup any time.</p>
+    </div>
+
+    <div class="toolbar">
+      <div class="toolbarLeft">
+        <div style="min-width:230px;">
+          <label for="settlementSelect">Settlement</label>
+          <select id="settlementSelect"></select>
+        </div>
+
+        <div style="min-width:170px;">
+          <label>&nbsp;</label>
+          <button class="secondary" id="newSettlementBtn">+ New Settlement</button>
+        </div>
+      </div>
+
+      <div class="toolbarRight">
+        <div style="min-width:170px;">
+          <label>&nbsp;</label>
+          <button class="ghost" id="exportBtn">Export Save</button>
+        </div>
+
+        <div style="min-width:170px;">
+          <label>&nbsp;</label>
+          <button class="ghost" id="importBtn">Import Save</button>
+          <input id="importFile" type="file" accept="application/json" style="display:none;" />
+        </div>
+      </div>
+
+      <div class="status" id="saveStatus">Loaded.</div>
+
+      <div class="tabs">
+        <button class="tabBtn active" id="tabSettlement">Settlement</button>
+        <button class="tabBtn" id="tabCharacters">Characters</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <!-- SETTLEMENT VIEW -->
+    <div id="viewSettlement">
+      <div class="grid">
+
+        <!-- Settlement Header + Notes -->
+        <section class="card span2">
+          <div class="cardTitle">
+            <h2>Settlement</h2>
+            <span class="pill" id="settlementIdPill">ID: —</span>
+          </div>
+
+          <div class="settlementNameRow">
+            <div class="nameLabel">Settlement:</div>
+            <input id="settlementName" placeholder="Enter settlement name..." />
+          </div>
+
+          <!-- Survival / Lost settlements counters -->
+          <div class="divider"></div>
+
+          <div class="row">
+            <div>
+              <label>Survival Limit</label>
+              <div class="tracker">
+                <button class="smallBtn warn" id="survivalDown" title="Decrease">–</button>
+                <div class="value" id="survivalValue">0</div>
+                <button class="smallBtn ok" id="survivalUp" title="Increase">+</button>
+              </div>
+            </div>
+
+            <div>
+              <label>Lost Settlements</label>
+              <div class="tracker">
+                <button class="smallBtn warn" id="lostDown" title="Decrease">–</button>
+                <div class="value" id="lostValue">0</div>
+                <button class="smallBtn ok" id="lostUp" title="Increase">+</button>
+              </div>
+              <div class="hint">Check milestones after 5, 10, 15, and 20.</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <label for="settlementNotes">Settlement Notes</label>
+          <textarea id="settlementNotes" placeholder="Anything important for the whole group..."></textarea>
+          <div class="hint">This saves as you type.</div>
+        </section>
+
+        <!-- Year Tracker -->
+        <section class="card span2">
+          <div class="cardTitle">
+            <h2>Year</h2>
+            <span class="pill">1–40</span>
+          </div>
+          <div class="hint">Check the box when you reach the year. Add events next to each year.</div>
+          <div class="yearContainer" id="yearContainer"></div>
+        </section>
+
+        <!-- Population -->
+        <section class="card span2">
+          <div class="cardTitle">
+            <h2>Population</h2>
+            <span class="pill" id="popSummaryPill">—</span>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Manual Total Population</label>
+              <div class="tracker">
+                <button class="smallBtn warn" id="popDown" title="Decrease manual total">–</button>
+                <div class="value" id="popManualValue">0</div>
+                <button class="smallBtn ok" id="popUp" title="Increase manual total">+</button>
+              </div>
+              <div class="hint">Use this if your settlement includes more than the roster (newborns, unknowns, etc.).</div>
+            </div>
+
+            <div>
+              <label>Alive (Auto)</label>
+              <div class="tracker">
+                <div class="value" id="popAliveValue">0</div>
+              </div>
+              <div class="hint" id="genderTotals">Male: 0 • Female: 0 • Unknown: 0</div>
+
+              <div style="margin-top:10px;">
+                <label>Deaths (Auto)</label>
+                <div class="tracker">
+                  <div class="value" id="popDeadValue">0</div>
+                </div>
+                <div class="hint">Counts Dead only (does not include Banished/Erased).</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <label>Population Roster (Alive Only)</label>
+          <ul class="roster" id="populationRoster"></ul>
+          <div class="hint">This roster is pulled from your Characters list. Dead/Banished/Erased are removed automatically.</div>
+        </section>
+
+        <!-- GEAR -->
+        <section class="card">
+          <div class="cardTitle">
+            <h2>Gear</h2>
+            <span class="pill" id="count-gear">0</span>
+          </div>
+          <div class="picker" id="picker-gear"></div>
+          <ul class="list" id="list-gear"></ul>
+        </section>
+
+        <!-- RESOURCES -->
+        <section class="card">
+          <div class="cardTitle">
+            <h2>Resources</h2>
+            <span class="pill" id="count-resources">0</span>
+          </div>
+          <div class="picker" id="picker-resources"></div>
+          <ul class="list" id="list-resources"></ul>
+        </section>
+
+        <!-- LOCATIONS -->
+        <section class="card">
+          <div class="cardTitle">
+            <h2>Locations</h2>
+            <span class="pill" id="count-locations">0</span>
+          </div>
+          <div class="picker" id="picker-locations"></div>
+          <ul class="list" id="list-locations"></ul>
+        </section>
+
+        <!-- INNOVATIONS -->
+        <section class="card">
+          <div class="cardTitle">
+            <h2>Innovations</h2>
+            <span class="pill" id="count-innovations">0</span>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Lantern Research Level</label>
+              <div class="tracker">
+                <button class="smallBtn warn" id="lanternDown" title="Decrease">–</button>
+                <div class="value" id="lanternValue">0</div>
+                <button class="smallBtn ok" id="lanternUp" title="Increase">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="picker" id="picker-innovations"></div>
+          <ul class="list" id="list-innovations"></ul>
+        </section>
+
+        <!-- QUARRY -->
+        <section class="card">
+          <div class="cardTitle">
+            <h2>Quarry</h2>
+            <span class="pill" id="count-quarry">0</span>
+          </div>
+          <div class="picker" id="picker-quarry"></div>
+          <ul class="list" id="list-quarry"></ul>
+        </section>
+
+        <!-- NEMESIS -->
+        <section class="card">
+          <div class="cardTitle">
+            <h2>Nemesis</h2>
+            <span class="pill" id="count-nemesis">0</span>
+          </div>
+          <div class="picker" id="picker-nemesis"></div>
+          <ul class="list" id="list-nemesis"></ul>
+        </section>
+
+        <!-- PRINCIPLES -->
+        <section class="card span2">
+          <div class="cardTitle">
+            <h2>Principles</h2>
+            <span class="pill" id="count-principles">0</span>
+          </div>
+          <div class="picker" id="picker-principles"></div>
+          <ul class="list" id="list-principles"></ul>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- CHARACTERS VIEW -->
+    <div id="viewCharacters" class="hidden">
+      <div class="grid" id="charactersGrid">
+
+        <section class="card">
+          <div class="cardTitle">
+            <h2>Characters</h2>
+            <span class="pill">Tied to this settlement</span>
+          </div>
+
+          <div class="row">
+            <div>
+              <label for="charFirstName">First Name</label>
+              <input id="charFirstName" placeholder="First..." />
+            </div>
+            <div>
+              <label for="charLastName">Last Name</label>
+              <input id="charLastName" placeholder="Last..." />
+            </div>
+            <div>
+              <label for="charNickname">Nickname</label>
+              <input id="charNickname" placeholder="Optional..." />
+            </div>
+
+            <div>
+              <label for="charGender">Gender</label>
+              <select id="charGender">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Unknown">Unknown</option>
+              </select>
+            </div>
+
+            <div>
+              <label>&nbsp;</label>
+              <button class="secondary" id="addCharacterBtn">+ Add Character</button>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <label>Character List</label>
+          <div class="hint">Tap a character to open their sheet. Alive characters appear on the Population roster automatically.</div>
+
+          <ul class="list" id="characterList"></ul>
+        </section>
+
+        <section class="card" id="characterSheetCard">
+          <div class="cardTitle">
+            <h2>Character Sheet</h2>
+            <span class="pill" id="characterSheetPill">Select a character</span>
+          </div>
+          <div id="characterSheetBody" class="hint">Tap a character from the list to open and edit their sheet.</div>
+        </section>
+
+      </div>
+    </div>
+</div>
+
+    <div class="footerSpace"></div>
+  </div>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBnJFs3EEN4vWpQTJY3TIhuBEn6J36rAUk",
+    authDomain: "kdm-companion-233f3.firebaseapp.com",
+    projectId: "kdm-companion-233f3",
+    storageBucket: "kdm-companion-233f3.firebasestorage.app",
+    messagingSenderId: "878561450906",
+    appId: "1:878561450906:web:f766bb29c39469a180f823",
+    measurementId: "G-WCJD6K03TE"
+  };
+
+  const firebaseApp = initializeApp(firebaseConfig);
+  const db = getFirestore(firebaseApp);
+
+  // Start with Firestore for Resources only (safe test). Other sections still use local placeholders.
+  const FIRESTORE_LIBRARY_SECTIONS = new Set(["resources"]);
+  const firestoreLibraryCache = { resources: [] };
+  const firestoreLibraryIndex = { resources: new Map() };
+  const firestoreLibraryLoaded = { resources: false };
+
+  /***********************
+   * Settlement Sheet v6
+   * - Death tracker (Dead only)
+   * - Survival Limit / Lost Settlements counters
+   * - Lantern Research Level counter in Innovations
+   * - Removed Reset/Delete settlement options
+   ***********************/
+
+  const STORAGE_KEY = "settlement_sheet_v5"; // keep same key so your current save still loads
+
+  const YEAR_MAX = 40;
+  const DEAD_STATUSES = new Set(["Dead", "Banished", "Erased"]);
+  const ALL_SECTIONS = ["gear","resources","locations","innovations","quarry","nemesis","principles"];
+  const LIBRARY_SECTIONS = new Set(["gear","resources","locations","innovations","principles","quarry","nemesis"]);
+
+  const LOCAL_LIBRARY = {
+    gear: [
+      { id: "gear_bone_dagger", name: "Bone Dagger", tags: ["weapon","bone","starter"] },
+      { id: "gear_stone_axe", name: "Stone Axe", tags: ["weapon","stone"] },
+      { id: "gear_hide_armor", name: "Hide Armor", tags: ["armor","hide","starter"] },
+      { id: "gear_leather_kit", name: "Leather Kit", tags: ["utility","leather"] },
+    ],
+    resources: [
+      { id: "res_bone", name: "Bone", tags: ["basic","material"] },
+      { id: "res_hide", name: "Hide", tags: ["basic","material"] },
+      { id: "res_organ", name: "Organ", tags: ["basic","material"] },
+      { id: "res_iron", name: "Iron", tags: ["metal","rare"] },
+      { id: "res_stone", name: "Stone", tags: ["material","common"] },
+      { id: "res_cloth", name: "Cloth", tags: ["material","common"] },
+    ],
+    locations: [
+      { id: "loc_bone_smith", name: "Bone Smith", tags: ["crafting"] },
+      { id: "loc_catarium", name: "Catarium", tags: ["hunt","special"] },
+      { id: "loc_skinnery", name: "Skinnery", tags: ["crafting"] },
+      { id: "loc_weapon_crafter", name: "Weapon Crafter", tags: ["crafting"] },
+    ],
+    innovations: [
+      { id: "inn_language", name: "Language", tags: ["core","settlement"] },
+      { id: "inn_drums", name: "Drums", tags: ["culture"] },
+      { id: "inn_saga", name: "Saga", tags: ["story"] },
+      { id: "inn_crafting", name: "Crafting", tags: ["core","gear"] },
+    ],
+    principles: [
+      { id: "pri_life", name: "Principle of Life", tags: ["principle","choice"] },
+      { id: "pri_death", name: "Principle of Death", tags: ["principle","choice"] },
+      { id: "pri_society", name: "Principle of Society", tags: ["principle","choice"] },
+      { id: "pri_conviction", name: "Principle of Conviction", tags: ["principle","choice"] },
+    ],
+    quarry: [
+      { id: "qua_white", name: "Quarry: White", tags: ["quarry","low"] },
+      { id: "qua_black", name: "Quarry: Black", tags: ["quarry","mid"] },
+      { id: "qua_red", name: "Quarry: Red", tags: ["quarry","high"] },
+    ],
+    nemesis: [
+      { id: "nem_butcher", name: "Nemesis: Butcher", tags: ["nemesis","boss"] },
+      { id: "nem_kingsman", name: "Nemesis: Kingsman", tags: ["nemesis","boss"] },
+      { id: "nem_hand", name: "Nemesis: Hand", tags: ["nemesis","boss"] },
+    ],
+  };
+
+  function getLibrarySource(section) {
+    if (FIRESTORE_LIBRARY_SECTIONS.has(section) && firestoreLibraryLoaded[section]) {
+      return firestoreLibraryCache[section] || [];
+    }
+    return LOCAL_LIBRARY[section] || [];
+  }
+
+  function getLibrary(section) {
+    const items = getLibrarySource(section);
+    return items.slice().sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  function getLibraryEntry(section, refId) {
+    if (FIRESTORE_LIBRARY_SECTIONS.has(section) && firestoreLibraryLoaded[section]) {
+      return firestoreLibraryIndex[section]?.get(refId) || null;
+    }
+    return (LOCAL_LIBRARY[section] || []).find(x => x.id === refId) || null;
+  }
+
+  function getAllTags(section) {
+    const tags = new Set();
+    getLibrarySource(section).forEach(it => (it.tags || []).forEach(t => tags.add(t)));
+    return Array.from(tags).sort((a, b) => a.localeCompare(b));
+  }
+
+  function singularLabel(section) {
+    const map = {
+      gear: "Gear",
+      resources: "Resource",
+      locations: "Location",
+      innovations: "Innovation",
+      principles: "Principle",
+      quarry: "Quarry",
+      nemesis: "Nemesis"
+    };
+    return map[section] || section;
+  }
+
+  async function loadLibrarySectionFromFirestore(section) {
+    if (!FIRESTORE_LIBRARY_SECTIONS.has(section)) return;
+    try {
+      const q = query(collection(db, "library", section, "items"), orderBy("name"));
+      const snap = await getDocs(q);
+
+      const items = snap.docs.map(d => {
+        const data = d.data() || {};
+        return {
+          id: d.id,
+          name: String(data.name ?? "").trim(),
+          tags: Array.isArray(data.tags)
+            ? data.tags.map(t => String(t).trim()).filter(Boolean)
+            : []
+        };
+      }).filter(x => x.name);
+
+      if (items.length) {
+        firestoreLibraryCache[section] = items;
+        firestoreLibraryIndex[section] = new Map(items.map(x => [x.id, x]));
+        firestoreLibraryLoaded[section] = true;
+      } else {
+        // Empty collection: keep local fallback so the UI doesn't look broken
+        firestoreLibraryLoaded[section] = false;
+      }
+
+      console.log(`[Firestore] ${section}: loaded ${items.length} item(s).`);
+    } catch (err) {
+      firestoreLibraryLoaded[section] = false;
+      console.warn(`[Firestore] Failed to load ${section}; using local fallback.`, err);
+    }
+  }
+
+  async function preloadFirestoreLibrary() {
+    await Promise.all([
+      loadLibrarySectionFromFirestore("resources")
+    ]);
+  }
+
+  function makeYearTracker() {
+    const years = [];
+    for (let i = 1; i <= YEAR_MAX; i++) years.push({ year: i, reached: false, event: "" });
+    return years;
+  }
+
+  
+  function normalizeGender(g) {
+    const v = String(g || "").trim();
+    if (!v) return "Unknown";
+    if (v === "Other/Unknown") return "Unknown";
+    if (v === "Male" || v === "Female" || v === "Unknown") return v;
+    return "Unknown";
+  }
+
+function defaultCharacter(firstName, lastName, nickname, gender) {
+    const f = String(firstName || "").trim();
+    const l = String(lastName || "").trim();
+    const n = String(nickname || "").trim();
+    const legacyName = [f, l].filter(Boolean).join(" ").trim() || n || "Unnamed";
+    const loadoutId = crypto.randomUUID();
+    return {
+      id: crypto.randomUUID(),
+      firstName: f,
+      lastName: l,
+      nickname: n,
+      name: legacyName,
+      gender: normalizeGender(gender || "Unknown"),
+      status: "Alive",
+
+      vitals: { survival: 0, insanity: 0, huntXP: 0, courage: 0, understanding: 0 },
+
+      vitalFlags: {
+        retired: false,
+        skipNextHunt: false,
+        brainDamage: false,
+        cannotIntimacy: false,
+        cannotSpendSurvival: false,
+        cannotUseFightingArts: false,
+        cannotDodge: false,
+        cannotEncourage: false,
+        cannotSurge: false,
+        cannotDash: false,
+        cannotEndure: false
+      },
+
+      survivalActions: {
+        dodge: true,
+        dash: true,
+        encourage: false,
+        surge: false,
+        endure: false
+      },
+
+
+      stats: {
+        movement: 0,
+        accuracy: 0,
+        strength: 0,
+        evasion: 0,
+        luck: 0,
+        speed: 0
+      },
+
+      armor: { head: 0, arms: 0, body: 0, waist: 0, legs: 0 },
+
+      armorChecks: { head: [false, false], arms: [false, false], body: [false, false], waist: [false, false], legs: [false, false] },
+
+      lists: {
+        fightingArts: [],
+        disorders: [],
+        abilities: [],
+        masteries: []
+      },
+
+      loadouts: [{ id: loadoutId, name: "Default", gear: [] }],
+      activeLoadoutId: loadoutId,
+      notes: ""
+    };
+  }
+
+  function defaultSettlement() {
+    return {
+      id: crypto.randomUUID(),
+      name: "New Settlement",
+      notes: "",
+      yearTracker: makeYearTracker(),
+      populationManual: 0,
+      survivalLimit: 0,
+      lostSettlements: 0,
+      lanternResearchLevel: 0,
+
+      characters: [],
+      activeCharacterId: null,
+
+      lists: {
+        gear: [],
+        resources: [],
+        locations: [],
+        innovations: [],
+        quarry: [],
+        nemesis: [],
+        principles: []
+      }
+    };
+  }
+
+  const state = { settlements: [], activeSettlementId: null };
+
+  const pickerState = {};
+  for (const sec of LIBRARY_SECTIONS) {
+    pickerState[sec] = { search: "", selectedTags: new Set(), selectedId: null };
+  }
+
+  const el = {
+    settlementSelect: document.getElementById("settlementSelect"),
+    newSettlementBtn: document.getElementById("newSettlementBtn"),
+    exportBtn: document.getElementById("exportBtn"),
+    importBtn: document.getElementById("importBtn"),
+    importFile: document.getElementById("importFile"),
+    saveStatus: document.getElementById("saveStatus"),
+
+    tabSettlement: document.getElementById("tabSettlement"),
+    tabCharacters: document.getElementById("tabCharacters"),
+    viewSettlement: document.getElementById("viewSettlement"),
+    viewCharacters: document.getElementById("viewCharacters"),
+
+    settlementIdPill: document.getElementById("settlementIdPill"),
+    settlementName: document.getElementById("settlementName"),
+    settlementNotes: document.getElementById("settlementNotes"),
+
+    survivalValue: document.getElementById("survivalValue"),
+    survivalUp: document.getElementById("survivalUp"),
+    survivalDown: document.getElementById("survivalDown"),
+
+    lostValue: document.getElementById("lostValue"),
+    lostUp: document.getElementById("lostUp"),
+    lostDown: document.getElementById("lostDown"),
+
+    lanternValue: document.getElementById("lanternValue"),
+    lanternUp: document.getElementById("lanternUp"),
+    lanternDown: document.getElementById("lanternDown"),
+
+    yearContainer: document.getElementById("yearContainer"),
+
+    popSummaryPill: document.getElementById("popSummaryPill"),
+    popManualValue: document.getElementById("popManualValue"),
+    popUp: document.getElementById("popUp"),
+    popDown: document.getElementById("popDown"),
+    popAliveValue: document.getElementById("popAliveValue"),
+    popDeadValue: document.getElementById("popDeadValue"),
+    genderTotals: document.getElementById("genderTotals"),
+    populationRoster: document.getElementById("populationRoster"),
+
+    charFirstName: document.getElementById("charFirstName"),
+    charLastName: document.getElementById("charLastName"),
+    charNickname: document.getElementById("charNickname"),
+    charGender: document.getElementById("charGender"),
+    addCharacterBtn: document.getElementById("addCharacterBtn"),
+    characterList: document.getElementById("characterList"),
+
+    characterSheetCard: document.getElementById("characterSheetCard"),
+    characterSheetPill: document.getElementById("characterSheetPill"),
+    characterSheetBody: document.getElementById("characterSheetBody"),
+  };
+
+  function upgradeSettlementShape(s) {
+    const upgraded = { ...s };
+    if (!upgraded.id) upgraded.id = crypto.randomUUID();
+    if (typeof upgraded.name !== "string") upgraded.name = "Unnamed Settlement";
+    if (typeof upgraded.notes !== "string") upgraded.notes = "";
+
+    if (!Array.isArray(upgraded.yearTracker) || upgraded.yearTracker.length !== YEAR_MAX) {
+      upgraded.yearTracker = makeYearTracker();
+    } else {
+      upgraded.yearTracker = upgraded.yearTracker.map((y, idx) => ({
+        year: Number(y.year ?? (idx + 1)),
+        reached: Boolean(y.reached),
+        event: String(y.event ?? "")
+      }));
+    }
+
+    if (typeof upgraded.populationManual !== "number") upgraded.populationManual = 0;
+    if (typeof upgraded.survivalLimit !== "number") upgraded.survivalLimit = 0;
+    if (typeof upgraded.lostSettlements !== "number") upgraded.lostSettlements = 0;
+    if (typeof upgraded.lanternResearchLevel !== "number") upgraded.lanternResearchLevel = 0;
+
+    if (!Array.isArray(upgraded.characters)) upgraded.characters = [];
+    
+    upgraded.characters = upgraded.characters.map(c => {
+      const first = typeof c.firstName === "string" ? c.firstName.trim() : "";
+        const last = typeof c.lastName === "string" ? c.lastName.trim() : "";
+        const nick = typeof c.nickname === "string" ? c.nickname.trim() : "";
+        let legacyName = typeof c.name === "string" ? c.name.trim() : "";
+
+        // Back-compat: parse old single-name field into first/last
+        let parsedFirst = first;
+        let parsedLast = last;
+        if (!parsedFirst && !parsedLast && legacyName) {
+          const parts = legacyName.split(/\s+/).filter(Boolean);
+          parsedFirst = parts.shift() || "";
+          parsedLast = parts.join(" ");
+        }
+
+        const out = {
+          id: c.id ?? crypto.randomUUID(),
+          firstName: parsedFirst,
+          lastName: parsedLast,
+          nickname: nick,
+          name: legacyName || [parsedFirst, parsedLast].filter(Boolean).join(" ").trim() || nick || "Unnamed",
+          gender: normalizeGender(String(c.gender ?? "Unknown")),
+          status: String(c.status ?? "Alive")
+        };
+
+      // Vitals
+      const v = c.vitals || {};
+      out.vitals = {
+  survival: Number.isFinite(v.survival) ? v.survival : Number(c.survival ?? 0) || 0,
+  insanity: Number.isFinite(v.insanity) ? v.insanity : Number(c.insanity ?? 0) || 0,
+  huntXP: Number.isFinite(v.huntXP) ? v.huntXP : Number(c.huntXP ?? 0) || 0,
+  courage: Number.isFinite(v.courage) ? v.courage : Number(c.courage ?? 0) || 0,
+  understanding: Number.isFinite(v.understanding) ? v.understanding : Number(c.understanding ?? 0) || 0
+};
+
+// Vital flags (checkboxes)
+const vf = c.vitalFlags || c.flags || {};
+out.vitalFlags = {
+  retired: Boolean(vf.retired),
+  skipNextHunt: Boolean(vf.skipNextHunt),
+  brainDamage: Boolean(vf.brainDamage),
+  cannotIntimacy: Boolean(vf.cannotIntimacy),
+  cannotSpendSurvival: Boolean(vf.cannotSpendSurvival),
+  cannotUseFightingArts: Boolean(vf.cannotUseFightingArts),
+  cannotDodge: Boolean(vf.cannotDodge),
+  cannotEncourage: Boolean(vf.cannotEncourage),
+  cannotSurge: Boolean(vf.cannotSurge),
+  cannotDash: Boolean(vf.cannotDash),
+  cannotEndure: Boolean(vf.cannotEndure)
+};
+
+// Survival actions (unlocked)
+const sa = c.survivalActions || {};
+out.survivalActions = {
+  dodge: Boolean(sa.dodge ?? true),
+  dash: Boolean(sa.dash ?? true),
+  encourage: Boolean(sa.encourage),
+  surge: Boolean(sa.surge),
+  endure: Boolean(sa.endure)
+};
+
+      // Stats
+      const st = c.stats || {};
+      out.stats = {
+        movement: Number(st.movement ?? c.movement ?? 0) || 0,
+        accuracy: Number(st.accuracy ?? c.accuracy ?? 0) || 0,
+        strength: Number(st.strength ?? c.strength ?? 0) || 0,
+        evasion: Number(st.evasion ?? c.evasion ?? 0) || 0,
+        luck: Number(st.luck ?? c.luck ?? 0) || 0,
+        speed: Number(st.speed ?? c.speed ?? 0) || 0
+      };
+
+      // Armor
+      const ar = c.armor || {};
+      out.armor = {
+        head: Number(ar.head ?? 0) || 0,
+        arms: Number(ar.arms ?? 0) || 0,
+        body: Number(ar.body ?? 0) || 0,
+        waist: Number(ar.waist ?? 0) || 0,
+        legs: Number(ar.legs ?? 0) || 0
+      };
+      // Armor checkboxes (2 per location)
+      const ac = c.armorChecks || {};
+      out.armorChecks = {
+        head: Array.isArray(ac.head) ? [Boolean(ac.head[0]), Boolean(ac.head[1])] : [false, false],
+        arms: Array.isArray(ac.arms) ? [Boolean(ac.arms[0]), Boolean(ac.arms[1])] : [false, false],
+        body: Array.isArray(ac.body) ? [Boolean(ac.body[0]), Boolean(ac.body[1])] : [false, false],
+        waist: Array.isArray(ac.waist) ? [Boolean(ac.waist[0]), Boolean(ac.waist[1])] : [false, false],
+        legs: Array.isArray(ac.legs) ? [Boolean(ac.legs[0]), Boolean(ac.legs[1])] : [false, false]
+      };
+
+
+      // Lists
+      const ls = c.lists || {};
+      const normList = (x) => Array.isArray(x) ? x.map(v => String(v).trim()).filter(Boolean) : [];
+
+      // Weapon proficiency items can be strings (old saves) or objects { name, count }
+      const rawMasteries = Array.isArray(ls.masteries ?? c.masteries) ? (ls.masteries ?? c.masteries) : [];
+      const normMasteries = rawMasteries.map(it => {
+        if (typeof it === "string") return { name: it.trim(), count: 0 };
+        return {
+          name: String(it?.name ?? "").trim(),
+          count: clampMin0(Number(it?.count ?? 0) || 0)
+        };
+      }).filter(it => it.name);
+
+      out.lists = {
+        fightingArts: normList(ls.fightingArts ?? c.fightingArts),
+        disorders: normList(ls.disorders ?? c.disorders),
+        abilities: normList(ls.abilities ?? c.abilities),
+        masteries: normMasteries
+      };
+
+      // Gear loadouts
+      function normGearArr(arr) {
+        return (Array.isArray(arr) ? arr : []).map(g => ({
+          name: String(g?.name ?? "").trim(),
+          qty: clampMin0(Number(g?.qty ?? g?.count ?? 1) || 1) || 1,
+          note: String(g?.note ?? "").trim()
+        })).filter(g => g.name);
+      }
+
+      if (Array.isArray(c.loadouts) && c.loadouts.length > 0) {
+        out.loadouts = c.loadouts.map(l => ({
+          id: String(l?.id ?? crypto.randomUUID()),
+          name: String(l?.name ?? "Loadout").trim() || "Loadout",
+          gear: normGearArr(l?.gear ?? l?.items ?? [])
+        }));
+      } else {
+        const gid = crypto.randomUUID();
+        out.loadouts = [{ id: gid, name: "Default", gear: normGearArr(c.gear) }];
+        out.activeLoadoutId = gid;
+      }
+
+      // Active loadout id
+      if (!out.activeLoadoutId) out.activeLoadoutId = typeof c.activeLoadoutId === "string" ? c.activeLoadoutId : (out.loadouts[0]?.id ?? null);
+      if (!out.loadouts.some(l => l.id === out.activeLoadoutId)) out.activeLoadoutId = out.loadouts[0]?.id ?? null;
+
+      out.notes = String(c.notes ?? "");
+
+      return out;
+    });
+
+    // Active character selection
+    if (typeof upgraded.activeCharacterId !== "string") upgraded.activeCharacterId = null;
+    const hasActive = upgraded.activeCharacterId && upgraded.characters.some(c => c.id === upgraded.activeCharacterId);
+    if (!hasActive) upgraded.activeCharacterId = upgraded.characters[0]?.id ?? null;
+if (!upgraded.lists || typeof upgraded.lists !== "object") upgraded.lists = {};
+    for (const section of ALL_SECTIONS) {
+      if (!Array.isArray(upgraded.lists[section])) upgraded.lists[section] = [];
+      upgraded.lists[section] = upgraded.lists[section].map(it => ({
+        name: typeof it?.name === "string" ? it.name.trim() : "",
+        note: typeof it?.note === "string" ? it.note.trim() : "",
+        refId: typeof it?.refId === "string" ? it.refId : ""
+      }));
+    }
+
+    return upgraded;
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        const s = defaultSettlement();
+        state.settlements = [s];
+        state.activeSettlementId = s.id;
+        saveState("Initialized new save.");
+        return;
+      }
+
+      const parsed = JSON.parse(raw);
+      if (!parsed || !Array.isArray(parsed.settlements) || !parsed.activeSettlementId) {
+        throw new Error("Invalid save format");
+      }
+
+      state.settlements = parsed.settlements.map(upgradeSettlementShape);
+      state.activeSettlementId = parsed.activeSettlementId;
+
+      if (state.settlements.length === 0) {
+        const s = defaultSettlement();
+        state.settlements = [s];
+        state.activeSettlementId = s.id;
+      }
+      if (!state.settlements.some(s => s.id === state.activeSettlementId)) {
+        state.activeSettlementId = state.settlements[0].id;
+      }
+
+    } catch (err) {
+      console.warn("Save load failed, starting fresh:", err);
+      const s = defaultSettlement();
+      state.settlements = [s];
+      state.activeSettlementId = s.id;
+      saveState("Recovered from bad save.");
+    }
+  }
+
+  function saveState(message = "Saved.") {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      settlements: state.settlements,
+      activeSettlementId: state.activeSettlementId
+    }));
+    setStatus(message);
+  }
+
+  let statusTimer = null;
+  function setStatus(msg) {
+    el.saveStatus.textContent = msg;
+    if (statusTimer) clearTimeout(statusTimer);
+    statusTimer = setTimeout(() => {
+      el.saveStatus.textContent = "Saved.";
+    }, 1200);
+  }
+
+  function getActiveSettlement() {
+    return state.settlements.find(s => s.id === state.activeSettlementId) || state.settlements[0];
+  }
+
+  function setActiveSettlement(id) {
+    state.activeSettlementId = id;
+    saveState("Switched settlement.");
+    renderAll();
+  }
+
+  function setTab(tabName) {
+    const isSettlement = tabName === "settlement";
+    el.tabSettlement.classList.toggle("active", isSettlement);
+    el.tabCharacters.classList.toggle("active", !isSettlement);
+    el.viewSettlement.classList.toggle("hidden", !isSettlement);
+    el.viewCharacters.classList.toggle("hidden", isSettlement);
+  }
+
+  function getDisplayName(section, item) {
+    if (LIBRARY_SECTIONS.has(section) && item.refId) {
+      const entry = getLibraryEntry(section, item.refId);
+      return entry ? entry.name : item.refId;
+    }
+    return item.name || "";
+  }
+
+  function sortSettlementSectionEntries(section) {
+    const s = getActiveSettlement();
+    const arr = s.lists?.[section];
+    if (!Array.isArray(arr)) return;
+
+    arr.sort((a, b) => {
+      const an = getDisplayName(section, a).toLowerCase();
+      const bn = getDisplayName(section, b).toLowerCase();
+      return an.localeCompare(bn);
+    });
+  }
+
+  function sortAllLibraryLists() {
+    const s = getActiveSettlement();
+    for (const sec of LIBRARY_SECTIONS) {
+      if (s.lists?.[sec]) sortSettlementSectionEntries(sec);
+    }
+  }
+
+  function renderSettlementSelect() {
+    el.settlementSelect.innerHTML = "";
+    state.settlements.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.name || "(Unnamed Settlement)";
+      if (s.id === state.activeSettlementId) opt.selected = true;
+      el.settlementSelect.appendChild(opt);
+    });
+  }
+
+  function renderHeaderFields() {
+    const s = getActiveSettlement();
+    state.activeSettlementId = s.id;
+
+    el.settlementIdPill.textContent = `ID: ${s.id.slice(0, 8)}`;
+    el.settlementName.value = s.name ?? "";
+    el.settlementNotes.value = s.notes ?? "";
+
+    el.survivalValue.textContent = String(s.survivalLimit ?? 0);
+    el.lostValue.textContent = String(s.lostSettlements ?? 0);
+    el.lanternValue.textContent = String(s.lanternResearchLevel ?? 0);
+  }
+
+  function renderYearTracker() {
+    const s = getActiveSettlement();
+    el.yearContainer.innerHTML = "";
+    const frag = document.createDocumentFragment();
+
+    s.yearTracker.forEach((y, idx) => {
+      const row = document.createElement("div");
+      row.className = "yearRow" + (y.reached ? " reached" : "");
+
+      const check = document.createElement("input");
+      check.type = "checkbox";
+      check.checked = !!y.reached;
+      check.dataset.action = "toggleYear";
+      check.dataset.yearIndex = String(idx);
+
+      const yearNum = document.createElement("div");
+      yearNum.className = "yearNum";
+      yearNum.textContent = String(y.year);
+
+      const eventBox = document.createElement("textarea");
+      eventBox.className = "yearEvent";
+      eventBox.placeholder = "Events / notes...";
+      eventBox.value = y.event ?? "";
+      eventBox.dataset.action = "editYearEvent";
+      eventBox.dataset.yearIndex = String(idx);
+
+      row.appendChild(check);
+      row.appendChild(yearNum);
+      row.appendChild(eventBox);
+      frag.appendChild(row);
+    });
+
+    el.yearContainer.appendChild(frag);
+  }
+
+  function getAliveCharacters(settlement) {
+    return (settlement.characters || []).filter(c => c.status === "Alive");
+  }
+
+  function getDeadCharacters(settlement) {
+    return (settlement.characters || []).filter(c => c.status === "Dead");
+  }
+
+  function renderPopulation() {
+    const s = getActiveSettlement();
+    const alive = getAliveCharacters(s);
+    const dead = getDeadCharacters(s);
+
+    const male = alive.filter(c => c.gender === "Male").length;
+    const female = alive.filter(c => c.gender === "Female").length;
+    const other = alive.filter(c => c.gender !== "Male" && c.gender !== "Female").length;
+
+    el.popManualValue.textContent = String(s.populationManual ?? 0);
+    el.popAliveValue.textContent = String(alive.length);
+    el.popDeadValue.textContent = String(dead.length);
+
+    el.genderTotals.textContent = `Male: ${male} • Female: ${female} • Unknown: ${other}`;
+    el.popSummaryPill.textContent = `Alive: ${alive.length} • Dead: ${dead.length} • Manual Total: ${s.populationManual ?? 0}`;
+
+    el.populationRoster.innerHTML = "";
+    if (alive.length === 0) {
+      const empty = document.createElement("li");
+      empty.className = "rosterItem";
+      empty.innerHTML = `
+        <div class="rosterLeft">
+          <div class="rosterName">No living characters yet</div>
+          <div class="rosterMeta">Add characters in the Characters tab</div>
+        </div>
+      `;
+      el.populationRoster.appendChild(empty);
+      return;
+    }
+
+    alive
+      .slice()
+      .sort((a,b) => charShortName(a).localeCompare(charShortName(b)))
+      .forEach(c => {
+        const li = document.createElement("li");
+        li.className = "rosterItem";
+
+        const left = document.createElement("div");
+        left.className = "rosterLeft";
+
+        const nm = document.createElement("div");
+        nm.className = "rosterName";
+        nm.textContent = charDisplayName(c);
+
+        const meta = document.createElement("div");
+        meta.className = "rosterMeta";
+        meta.textContent = c.gender;
+
+        left.appendChild(nm);
+        left.appendChild(meta);
+
+        const right = document.createElement("div");
+        right.className = "rosterMeta";
+        right.textContent = "Alive";
+
+        li.appendChild(left);
+        li.appendChild(right);
+
+        el.populationRoster.appendChild(li);
+      });
+  }
+
+  function addCharacter(firstName, lastName, nickname, gender) {
+    const s = getActiveSettlement();
+    if (!Array.isArray(s.characters)) s.characters = [];
+
+    const c = defaultCharacter(firstName, lastName, nickname, gender);
+    s.characters.unshift(c);
+
+    if (!s.activeCharacterId) s.activeCharacterId = c.id;
+
+    saveState("Added character.");
+    renderCharacters();
+    renderPopulation();
+    renderCharacterSheet();
+  }
+
+  function updateCharacter(id, updates) {
+    const s = getActiveSettlement();
+    const c = (s.characters || []).find(x => x.id === id);
+    if (!c) return;
+
+    Object.assign(c, updates);
+
+    // Keep legacy display name in sync
+    if (updates && ("firstName" in updates || "lastName" in updates || "nickname" in updates)) {
+      const legacy = charBaseName(c) || String(c.nickname || "").trim() || String(c.name || "").trim() || "Unnamed";
+      c.name = legacy;
+    }
+
+    saveState("Updated character.");
+    renderCharacters();
+    renderPopulation();
+    renderCharacterSheet();
+  }
+
+  function deleteCharacter(id) {
+    const s = getActiveSettlement();
+    const c = (s.characters || []).find(x => x.id === id);
+    if (!c) return;
+
+    const ok = confirm(`Delete "${charDisplayName(c)}" permanently?`);
+    if (!ok) return;
+
+    s.characters = (s.characters || []).filter(x => x.id !== id);
+
+    if (s.activeCharacterId === id) {
+      s.activeCharacterId = s.characters[0]?.id ?? null;
+    }
+
+    saveState("Deleted character.");
+    renderCharacters();
+    renderPopulation();
+    renderCharacterSheet();
+  }
+
+  function renderCharacters() {
+    const s = getActiveSettlement();
+    const chars = s.characters || [];
+    const activeId = s.activeCharacterId || null;
+    el.characterList.innerHTML = "";
+
+    if (chars.length === 0) {
+      const empty = document.createElement("li");
+      empty.className = "item";
+      empty.innerHTML = `
+        <div class="itemTop">
+          <div>
+            <div class="itemName">No characters yet</div>
+            <div class="itemNote">Add one above. They will appear in the Population roster if Alive.</div>
+          </div>
+        </div>
+      `;
+      el.characterList.appendChild(empty);
+      return;
+    }
+
+    chars.forEach(c => {
+      const li = document.createElement("li");
+      li.className = "item" + (c.id === activeId ? " selectedItem" : "");
+
+      li.addEventListener("click", () => {
+        selectCharacter(c.id);
+      });
+
+      const top = document.createElement("div");
+      top.className = "itemTop";
+
+      const left = document.createElement("div");
+
+      const name = document.createElement("div");
+      name.className = "itemName";
+      name.textContent = charDisplayName(c);
+
+      const note = document.createElement("div");
+      note.className = "itemNote";
+      note.textContent = `${c.gender} • Status: ${c.status}`;
+
+      left.appendChild(name);
+      left.appendChild(note);
+
+      const btns = document.createElement("div");
+      btns.className = "itemBtns";
+
+      const statusSelect = document.createElement("select");
+      statusSelect.style.padding = "6px 10px";
+      statusSelect.style.borderRadius = "12px";
+      statusSelect.style.border = "1px solid var(--border)";
+      statusSelect.style.background = "#232323";
+      statusSelect.style.color = "var(--text)";
+      statusSelect.style.fontWeight = "900";
+      statusSelect.style.fontSize = "12px";
+      ["Alive", "Dead", "Banished", "Erased"].forEach(st => {
+        const opt = document.createElement("option");
+        opt.value = st;
+        opt.textContent = st;
+        if (st === c.status) opt.selected = true;
+        statusSelect.appendChild(opt);
+      });
+      statusSelect.addEventListener("click", (e) => e.stopPropagation());
+      statusSelect.addEventListener("change", (e) => {
+        e.stopPropagation();
+        updateCharacter(c.id, { status: statusSelect.value });
+      });
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "tinyBtn";
+      editBtn.textContent = "Edit";
+      editBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const newFirst = prompt("First name:", String(c.firstName || ""));
+        if (newFirst === null) return;
+
+        const newLast = prompt("Last name:", String(c.lastName || ""));
+        if (newLast === null) return;
+
+        const newNick = prompt("Nickname (optional):", String(c.nickname || ""));
+        if (newNick === null) return;
+
+        if (!newFirst.trim() && !newLast.trim() && !newNick.trim()) {
+          alert("Name cannot be blank.");
+          return;
+        }
+
+        const newGender = prompt("Gender (Male / Female / Unknown):", c.gender);
+        if (newGender === null) return;
+
+        const normalizedGender = ["Male","Female","Unknown","Other/Unknown"].includes(newGender.trim())
+          ? newGender.trim()
+          : "Unknown";
+
+        updateCharacter(c.id, {
+          firstName: newFirst.trim(),
+          lastName: newLast.trim(),
+          nickname: newNick.trim(),
+          gender: normalizedGender
+        });
+      });
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "tinyBtn danger";
+      delBtn.textContent = "Delete";
+      delBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteCharacter(c.id);
+      });
+
+      btns.appendChild(statusSelect);
+      btns.appendChild(editBtn);
+      btns.appendChild(delBtn);
+
+      top.appendChild(left);
+      top.appendChild(btns);
+
+      li.appendChild(top);
+      el.characterList.appendChild(li);
+    });
+  }
+
+  
+  function getActiveCharacter() {
+    const s = getActiveSettlement();
+    if (!Array.isArray(s.characters)) s.characters = [];
+
+    if (s.activeCharacterId && !s.characters.some(c => c.id === s.activeCharacterId)) {
+      s.activeCharacterId = s.characters[0]?.id ?? null;
+    }
+    return s.characters.find(c => c.id === s.activeCharacterId) || null;
+  }
+
+  function selectCharacter(id) {
+    const s = getActiveSettlement();
+    if (!Array.isArray(s.characters)) s.characters = [];
+
+    const exists = s.characters.some(c => c.id === id);
+    if (!exists) return;
+
+    s.activeCharacterId = id;
+    saveState("Selected character.");
+    renderCharacters();
+    renderCharacterSheet();
+  }
+
+  function clampMin0(n) {
+    n = Number(n);
+    if (!Number.isFinite(n)) return 0;
+    return Math.max(0, Math.trunc(n));
+  }
+
+  function sortStringList(arr) {
+    arr.sort((a, b) => String(a).localeCompare(String(b)));
+  }
+
+  function sortGearList(arr) {
+    arr.sort((a, b) => String(a?.name || "").localeCompare(String(b?.name || "")));
+  }
+
+
+  function charBaseName(c){
+    const f = String(c?.firstName ?? "").trim();
+    const l = String(c?.lastName ?? "").trim();
+    return [f,l].filter(Boolean).join(" ").trim();
+  }
+
+  function charShortName(c){
+    const base = charBaseName(c);
+    const nick = String(c?.nickname ?? "").trim();
+    const legacy = String(c?.name ?? "").trim();
+    return base || nick || legacy || "Unnamed";
+  }
+
+  function charDisplayName(c){
+    const f = String(c?.firstName ?? "").trim();
+    const l = String(c?.lastName ?? "").trim();
+    const base = [f,l].filter(Boolean).join(" ").trim();
+    const nick = String(c?.nickname ?? "").trim();
+    if (base && nick) {
+      const left = f ? f : "";
+      const right = l ? l : "";
+      return `${left} "${nick}"${right ? " " + right : ""}`.replace(/\s+/g," ").trim();
+    }
+    return base || nick || String(c?.name ?? "").trim() || "Unnamed";
+  }
+
+  function renderCharacterSheet() {
+    if (!el.characterSheetBody || !el.characterSheetPill) return;
+
+    const s = getActiveSettlement();
+    if (!Array.isArray(s.characters)) s.characters = [];
+
+    if (s.activeCharacterId && !s.characters.some(c => c.id === s.activeCharacterId)) {
+      s.activeCharacterId = s.characters[0]?.id ?? null;
+    }
+
+    const c = s.characters.find(x => x.id === s.activeCharacterId) || null;
+
+    if (!c) {
+      el.characterSheetPill.textContent = "Select a character";
+      el.characterSheetBody.textContent = "Tap a character from the list to open and edit their sheet.";
+      return;
+    }
+
+    // Ensure shape (in case of older saves / manual edits)
+    if (!c.vitals || typeof c.vitals !== "object") c.vitals = { survival: 0, insanity: 0, huntXP: 0, courage: 0, understanding: 0 };
+
+    if (typeof c.vitals.survival !== "number") c.vitals.survival = 0;
+    if (typeof c.vitals.insanity !== "number") c.vitals.insanity = 0;
+    if (typeof c.vitals.huntXP !== "number") c.vitals.huntXP = 0;
+    if (typeof c.vitals.courage !== "number") c.vitals.courage = 0;
+    if (typeof c.vitals.understanding !== "number") c.vitals.understanding = 0;
+
+    if (!c.vitalFlags || typeof c.vitalFlags !== "object") {
+      c.vitalFlags = {
+        retired: false,
+        skipNextHunt: false,
+        brainDamage: false,
+        cannotIntimacy: false,
+        cannotSpendSurvival: false,
+        cannotUseFightingArts: false,
+        cannotDodge: false,
+        cannotEncourage: false,
+        cannotSurge: false,
+        cannotDash: false,
+        cannotEndure: false
+      };
+    }
+
+    if (!c.survivalActions || typeof c.survivalActions !== "object") {
+      c.survivalActions = { dodge: true, dash: true, encourage: false, surge: false, endure: false };
+    }
+
+    if (!c.triumphChoices || typeof c.triumphChoices !== "object") {
+      c.triumphChoices = { bold: "", seeTheTruth: "", insight: "", whiteSecret: "" };
+    }
+    if (typeof c.triumphChoices.bold !== "string") c.triumphChoices.bold = "";
+    if (typeof c.triumphChoices.seeTheTruth !== "string") c.triumphChoices.seeTheTruth = "";
+    if (typeof c.triumphChoices.insight !== "string") c.triumphChoices.insight = "";
+    if (typeof c.triumphChoices.whiteSecret !== "string") c.triumphChoices.whiteSecret = "";
+
+    if (!c.stats) c.stats = { movement: 0, accuracy: 0, strength: 0, evasion: 0, luck: 0, speed: 0 };
+    if (!c.armor) c.armor = { head: 0, arms: 0, body: 0, waist: 0, legs: 0 };
+    if (!c.lists) c.lists = { fightingArts: [], disorders: [], abilities: [], masteries: [] };
+    if (!Array.isArray(c.loadouts) || c.loadouts.length === 0) {
+      const fromOld = Array.isArray(c.gear) ? c.gear : [];
+      const lid = crypto.randomUUID();
+      c.loadouts = [{
+        id: lid,
+        name: "Default",
+        gear: fromOld.map(g => ({
+          name: String(g?.name ?? "").trim(),
+          qty: clampMin0(Number(g?.qty ?? g?.count ?? 1) || 1) || 1,
+          note: String(g?.note ?? "").trim()
+        })).filter(g => g.name)
+      }];
+      c.activeLoadoutId = lid;
+    } else {
+      c.loadouts = c.loadouts.map(l => ({
+        id: String(l?.id ?? crypto.randomUUID()),
+        name: String(l?.name ?? "Loadout").trim() || "Loadout",
+        gear: (Array.isArray(l?.gear) ? l.gear : (Array.isArray(l?.items) ? l.items : [])).map(g => ({
+          name: String(g?.name ?? "").trim(),
+          qty: clampMin0(Number(g?.qty ?? g?.count ?? 1) || 1) || 1,
+          note: String(g?.note ?? "").trim()
+        })).filter(g => g.name)
+      }));
+    }
+
+    if (typeof c.activeLoadoutId !== "string" || !c.loadouts.some(l => l.id === c.activeLoadoutId)) {
+      c.activeLoadoutId = c.loadouts[0]?.id ?? null;
+    }
+    if (typeof c.notes !== "string") c.notes = "";
+
+    const titleName = charDisplayName(c);
+    el.characterSheetPill.textContent = `${titleName} • ${c.status || "Alive"}`;
+
+    el.characterSheetBody.innerHTML = "";
+    const wrapper = document.createElement("div");
+    wrapper.className = "sheetBody";
+
+    function makeVital(label, key, opts = {}) {
+      const box = document.createElement("div");
+      const lbl = document.createElement("label");
+      lbl.textContent = label;
+
+      const tracker = document.createElement("div");
+      tracker.className = "miniTracker";
+
+      const down = document.createElement("button");
+      down.className = "miniBtn warn";
+      down.textContent = "–";
+
+      const val = document.createElement("div");
+      val.className = "value";
+      val.textContent = String(clampMin0(c.vitals[key]));
+
+      const up = document.createElement("button");
+      up.className = "miniBtn ok";
+      up.textContent = "+";
+
+      down.addEventListener("click", () => {
+        c.vitals[key] = clampMin0(c.vitals[key] - 1);
+        val.textContent = String(c.vitals[key]);
+        saveState("Updated vitals.");
+      });
+
+      up.addEventListener("click", () => {
+        c.vitals[key] = clampMin0(c.vitals[key] + 1);
+        val.textContent = String(c.vitals[key]);
+        saveState("Updated vitals.");
+      });
+
+      tracker.appendChild(down);
+      tracker.appendChild(val);
+      tracker.appendChild(up);
+
+      box.appendChild(lbl);
+      box.appendChild(tracker);
+
+      if (opts.note) {
+        const h = document.createElement("div");
+        h.className = "sheetTinyHint";
+        h.textContent = opts.note;
+        box.appendChild(h);
+      }
+
+      if (opts.extraEl) {
+        box.appendChild(opts.extraEl);
+      }
+
+      return box;
+    }
+
+
+    /******** Basics ********/
+    const basics = document.createElement("div");
+    basics.className = "sheetSection";
+    basics.innerHTML = `
+      <div class="sheetSectionTitle">
+        <div class="sheetH3">Basics</div>
+        <span class="pill">ID: ${String(c.id).slice(0, 6)}</span>
+      </div>
+    `;
+
+    const basicsRow = document.createElement("div");
+    basicsRow.className = "row";
+
+    // Name (First / Last / Nickname)
+    const firstWrap = document.createElement("div");
+    const firstLabel = document.createElement("label");
+    firstLabel.textContent = "First Name";
+    const firstInput = document.createElement("input");
+    firstInput.value = c.firstName || "";
+    firstInput.placeholder = "First...";
+    firstWrap.appendChild(firstLabel);
+    firstWrap.appendChild(firstInput);
+
+    const lastWrap = document.createElement("div");
+    const lastLabel = document.createElement("label");
+    lastLabel.textContent = "Last Name";
+    const lastInput = document.createElement("input");
+    lastInput.value = c.lastName || "";
+    lastInput.placeholder = "Last...";
+    lastWrap.appendChild(lastLabel);
+    lastWrap.appendChild(lastInput);
+
+    const nickWrap = document.createElement("div");
+    const nickLabel = document.createElement("label");
+    nickLabel.textContent = "Nickname";
+    const nickInput = document.createElement("input");
+    nickInput.value = c.nickname || "";
+    nickInput.placeholder = "Optional...";
+    nickWrap.appendChild(nickLabel);
+    nickWrap.appendChild(nickInput);
+// Gender
+    const genderWrap = document.createElement("div");
+    const genderLabel = document.createElement("label");
+    genderLabel.textContent = "Gender";
+    const genderSelect = document.createElement("select");
+    ["Male","Female","Unknown"].forEach(g => {
+      const opt = document.createElement("option");
+      opt.value = g;
+      opt.textContent = g;
+      if (g === c.gender) opt.selected = true;
+      genderSelect.appendChild(opt);
+    });
+    genderWrap.appendChild(genderLabel);
+    genderWrap.appendChild(genderSelect);
+
+    // Status
+    const statusWrap = document.createElement("div");
+    const statusLabel = document.createElement("label");
+    statusLabel.textContent = "Status";
+    const statusSelect = document.createElement("select");
+    ["Alive","Dead","Banished","Erased"].forEach(st => {
+      const opt = document.createElement("option");
+      opt.value = st;
+      opt.textContent = st;
+      if (st === c.status) opt.selected = true;
+      statusSelect.appendChild(opt);
+    });
+    statusWrap.appendChild(statusLabel);
+    statusWrap.appendChild(statusSelect);
+
+    basicsRow.appendChild(firstWrap);
+    basicsRow.appendChild(lastWrap);
+    basicsRow.appendChild(nickWrap);
+    basics.appendChild(basicsRow);
+
+    // Gender + Status side-by-side
+    const genderStatusRow = document.createElement("div");
+    genderStatusRow.className = "twoCol";
+    genderStatusRow.appendChild(genderWrap);
+    genderStatusRow.appendChild(statusWrap);
+    basics.appendChild(genderStatusRow);
+
+    const basicsCounters = document.createElement("div");
+    basicsCounters.className = "sheetGrid";
+    basicsCounters.appendChild(makeVital("Hunt XP", "huntXP", {
+      note: "Milestones: 2, 6, 10, 15, 16"
+    }));
+    basics.appendChild(basicsCounters);
+
+
+    // Restrictions (moved to Basics)
+    const restrTitle = document.createElement("div");
+    restrTitle.className = "sheetTinyHint";
+    restrTitle.innerHTML = "<strong>Restrictions</strong>";
+    basics.appendChild(restrTitle);
+
+    const restrGrid = document.createElement("div");
+    restrGrid.className = "checkGrid";
+
+    function makeRestriction(label, key) {
+      const lab = document.createElement("label");
+      lab.className = "checkItem";
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = Boolean(c.vitalFlags[key]);
+      cb.addEventListener("change", () => {
+        c.vitalFlags[key] = cb.checked;
+        saveState("Updated restrictions.");
+      });
+      const span = document.createElement("span");
+      span.textContent = label;
+      lab.appendChild(cb);
+      lab.appendChild(span);
+      return lab;
+    }
+
+    restrGrid.appendChild(makeRestriction("Retired", "retired"));
+    restrGrid.appendChild(makeRestriction("Skip Next Hunt", "skipNextHunt"));
+    restrGrid.appendChild(makeRestriction("Cannot Intimacy", "cannotIntimacy"));
+    restrGrid.appendChild(makeRestriction("Cannot Spend Survival", "cannotSpendSurvival"));
+    restrGrid.appendChild(makeRestriction("Cannot Use Fighting Arts", "cannotUseFightingArts"));
+    restrGrid.appendChild(makeRestriction("Cannot Dodge", "cannotDodge"));
+    restrGrid.appendChild(makeRestriction("Cannot Encourage", "cannotEncourage"));
+    restrGrid.appendChild(makeRestriction("Cannot Surge", "cannotSurge"));
+    restrGrid.appendChild(makeRestriction("Cannot Dash", "cannotDash"));
+    restrGrid.appendChild(makeRestriction("Cannot Endure", "cannotEndure"));
+
+    basics.appendChild(restrGrid);
+
+
+    const basicsHint = document.createElement("div");
+    basicsHint.className = "sheetTinyHint";
+    basicsHint.textContent = "This auto-saves. Dead removes them from the Population roster and adds to Deaths.";
+    basics.appendChild(basicsHint);
+
+    function syncLegacyName() {
+      const legacy = charBaseName(c) || String(c.nickname || "").trim() || String(c.name || "").trim() || "Unnamed";
+      c.name = legacy;
+    }
+
+    firstInput.addEventListener("input", () => {
+      c.firstName = firstInput.value;
+      syncLegacyName();
+      saveState("Updated character.");
+      el.characterSheetPill.textContent = `${charDisplayName(c)} • ${c.status || "Alive"}`;
+      renderCharacters();
+      renderPopulation();
+    });
+
+    lastInput.addEventListener("input", () => {
+      c.lastName = lastInput.value;
+      syncLegacyName();
+      saveState("Updated character.");
+      el.characterSheetPill.textContent = `${charDisplayName(c)} • ${c.status || "Alive"}`;
+      renderCharacters();
+      renderPopulation();
+    });
+
+    nickInput.addEventListener("input", () => {
+      c.nickname = nickInput.value;
+      syncLegacyName();
+      saveState("Updated character.");
+      el.characterSheetPill.textContent = `${charDisplayName(c)} • ${c.status || "Alive"}`;
+      renderCharacters();
+      renderPopulation();
+    });
+
+    genderSelect.addEventListener("change", () => {
+      c.gender = genderSelect.value;
+      saveState("Updated character.");
+      renderCharacters();
+      renderPopulation();
+    });
+
+    statusSelect.addEventListener("change", () => {
+      c.status = statusSelect.value;
+      saveState("Updated character.");
+      el.characterSheetPill.textContent = `${charDisplayName(c)} • ${c.status || "Alive"}`;
+      renderCharacters();
+      renderPopulation();
+    });
+
+    wrapper.appendChild(basics);
+
+    /******** Vitals ********/
+    const vitals = document.createElement("div");
+    vitals.className = "sheetSection";
+
+    const vitalsTitle = document.createElement("div");
+    vitalsTitle.className = "sheetSectionTitle";
+    vitalsTitle.innerHTML = `<div class="sheetH3">Triumphs</div><span class="pill">Quick +/-</span>`;
+    vitals.appendChild(vitalsTitle);
+
+    const vitalsGrid = document.createElement("div");
+    vitalsGrid.className = "sheetGrid";
+
+        function makeTriumphSelect(labelText, fieldKey, options) {
+      const wrap = document.createElement("div");
+      wrap.style.marginTop = "8px";
+
+      const lbl = document.createElement("label");
+      lbl.textContent = labelText;
+
+      const sel = document.createElement("select");
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = "—";
+      sel.appendChild(placeholder);
+
+      options.forEach(o => {
+        const opt = document.createElement("option");
+        opt.value = o;
+        opt.textContent = o;
+        sel.appendChild(opt);
+      });
+
+      sel.value = String(c.triumphChoices?.[fieldKey] ?? "");
+      sel.addEventListener("change", () => {
+        c.triumphChoices[fieldKey] = sel.value;
+        saveState("Updated triumph choice.");
+      });
+
+      wrap.appendChild(lbl);
+      wrap.appendChild(sel);
+      return wrap;
+    }
+
+    const courageBox = makeVital("Courage", "courage", {
+      note: "Milestones: 3, 9"
+    });
+    courageBox.appendChild(makeTriumphSelect("Bold", "bold", ["Stalwart","Prepared","Matchmaker"]));
+    courageBox.appendChild(makeTriumphSelect("See the Truth", "seeTheTruth", ["Sweet Battle","Bitter Frenzy","Sour Death"]));
+    vitalsGrid.appendChild(courageBox);
+
+    const understandBox = makeVital("Understanding", "understanding", {
+      note: "Milestones: 3, 9"
+    });
+    understandBox.appendChild(makeTriumphSelect("Insight", "insight", ["Analyze","Explore","Tinker"]));
+    understandBox.appendChild(makeTriumphSelect("White Secret", "whiteSecret", ["Ageless","Peerless","Leyline Walker"]));
+    vitalsGrid.appendChild(understandBox);
+
+vitals.appendChild(vitalsGrid);
+
+
+
+        wrapper.appendChild(vitals);
+    /******** Survival Actions ********/
+    const actionsSec = document.createElement("div");
+    actionsSec.className = "sheetSection";
+    
+    const actionsTitle = document.createElement("div");
+    actionsTitle.className = "sheetSectionTitle";
+    actionsTitle.innerHTML = `<div class="sheetH3">Survival Actions</div><span class="pill">Unlocked</span>`;
+    actionsSec.appendChild(actionsTitle);
+
+    const survivalGrid = document.createElement("div");
+    survivalGrid.className = "sheetGrid";
+    survivalGrid.appendChild(makeVital("Survival", "survival"));
+    actionsSec.appendChild(survivalGrid);
+
+    
+    const actionsGrid = document.createElement("div");
+    actionsGrid.className = "checkGrid";
+    
+    function makeAction(label, key) {
+      const lab = document.createElement("label");
+      lab.className = "checkItem";
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = Boolean(c.survivalActions[key]);
+      cb.addEventListener("change", () => {
+        c.survivalActions[key] = cb.checked;
+        saveState("Updated survival actions.");
+      });
+      const span = document.createElement("span");
+      span.textContent = label;
+      lab.appendChild(cb);
+      lab.appendChild(span);
+      return lab;
+    }
+    
+    actionsGrid.appendChild(makeAction("Dodge", "dodge"));
+    actionsGrid.appendChild(makeAction("Dash", "dash"));
+    actionsGrid.appendChild(makeAction("Encourage", "encourage"));
+    actionsGrid.appendChild(makeAction("Surge", "surge"));
+    actionsGrid.appendChild(makeAction("Endure", "endure"));
+    
+    actionsSec.appendChild(actionsGrid);
+    
+    const actionsHint = document.createElement("div");
+    actionsHint.className = "sheetTinyHint";
+    actionsHint.textContent = "Track which survival actions this survivor can use.";
+    actionsSec.appendChild(actionsHint);
+    
+    wrapper.appendChild(actionsSec);
+
+    /******** Stats + Armor ********/
+    const statsArmor = document.createElement("div");
+    statsArmor.className = "sheetGrid";
+
+    const stats = document.createElement("div");
+    stats.className = "sheetSection";
+    stats.innerHTML = `
+      <div class="sheetSectionTitle">
+        <div class="sheetH3">Stats</div>
+        <span class="pill">Numbers</span>
+      </div>
+    `;
+
+    const statsGrid = document.createElement("div");
+    statsGrid.className = "sheetGrid";
+
+    const statFields = [
+      ["Movement","movement"],
+      ["Accuracy","accuracy"],
+      ["Strength","strength"],
+      ["Evasion","evasion"],
+      ["Luck","luck"],
+      ["Speed","speed"],
+    ];
+
+    statFields.forEach(([label,key]) => {
+      const w = document.createElement("div");
+      const l = document.createElement("label");
+      l.textContent = label;
+      const inp = document.createElement("input");
+      inp.type = "number";
+      inp.className = "numInput";
+      inp.value = String(Number(c.stats[key] ?? 0));
+      inp.addEventListener("input", () => {
+        c.stats[key] = Number(inp.value || 0);
+        saveState("Updated stats.");
+      });
+      w.appendChild(l);
+      w.appendChild(inp);
+      statsGrid.appendChild(w);
+    });
+
+    stats.appendChild(statsGrid);
+
+    const armor = document.createElement("div");
+    armor.className = "sheetSection";
+    armor.innerHTML = `
+      <div class="sheetSectionTitle">
+        <div class="sheetH3">Armor</div>
+        <span class="pill">H / A / B / W / L</span>
+      </div>
+    `;
+
+    const armorVitalsGrid = document.createElement("div");
+    armorVitalsGrid.className = "sheetGrid";
+
+    const insanityExtra = document.createElement("label");
+    insanityExtra.className = "miniCheck";
+    const bd = document.createElement("input");
+    bd.type = "checkbox";
+    bd.checked = Boolean(c.vitalFlags.brainDamage);
+    bd.addEventListener("change", () => {
+      c.vitalFlags.brainDamage = bd.checked;
+      saveState("Updated vital flags.");
+    });
+    const bdTxt = document.createElement("span");
+    bdTxt.textContent = "Brain Damage (beyond insanity)";
+    insanityExtra.appendChild(bd);
+    insanityExtra.appendChild(bdTxt);
+
+    armorVitalsGrid.appendChild(makeVital("Insanity", "insanity", {
+      note: "Insane at 3+",
+      extraEl: insanityExtra
+    }));
+
+    armor.appendChild(armorVitalsGrid);
+
+    const armorGrid = document.createElement("div");
+    armorGrid.className = "sheetGrid";
+
+    const armorFields = [
+      ["Head","head"],
+      ["Arms","arms"],
+      ["Body","body"],
+      ["Waist","waist"],
+      ["Legs","legs"],
+    ];
+
+    
+    if (!c.armorChecks || typeof c.armorChecks !== "object") {
+      c.armorChecks = { head: [false, false], arms: [false, false], body: [false, false], waist: [false, false], legs: [false, false] };
+    }
+armorFields.forEach(([label,key]) => {
+      const w = document.createElement("div");
+      const l = document.createElement("label");
+      l.textContent = label;
+      const inp = document.createElement("input");
+      inp.type = "number";
+      inp.className = "numInput";
+      inp.value = String(Number(c.armor[key] ?? 0));
+      inp.addEventListener("input", () => {
+        c.armor[key] = Number(inp.value || 0);
+        saveState("Updated armor.");
+      });
+      w.appendChild(l);
+      w.appendChild(inp);
+      
+      // 2 checkboxes per location (2nd = knocked down)
+      if (!Array.isArray(c.armorChecks[key])) c.armorChecks[key] = [false, false];
+
+      const checks = document.createElement("div");
+      checks.className = "armorChecks";
+
+      const a1 = document.createElement("label");
+      a1.className = "armorCheckItem";
+      const cb1 = document.createElement("input");
+      cb1.type = "checkbox";
+      cb1.checked = Boolean(c.armorChecks[key][0]);
+      cb1.addEventListener("change", () => {
+        c.armorChecks[key][0] = cb1.checked;
+        saveState("Updated armor.");
+      });
+      a1.appendChild(cb1);
+
+      const a2 = document.createElement("label");
+      a2.className = "armorCheckItem";
+      const cb2 = document.createElement("input");
+      cb2.type = "checkbox";
+      cb2.checked = Boolean(c.armorChecks[key][1]);
+      cb2.addEventListener("change", () => {
+        c.armorChecks[key][1] = cb2.checked;
+        saveState("Updated armor.");
+      });
+      const kd = document.createElement("span");
+      kd.textContent = "Knocked down";
+      a2.appendChild(cb2);
+      a2.appendChild(kd);
+
+      checks.appendChild(a1);
+      checks.appendChild(a2);
+
+      w.appendChild(checks);
+
+armorGrid.appendChild(w);
+    });
+
+    armor.appendChild(armorGrid);
+
+    statsArmor.appendChild(stats);
+    statsArmor.appendChild(armor);
+    wrapper.appendChild(statsArmor);
+
+    /******** String Lists ********/
+    function buildStringListSection(title, key, maxCount = null) {
+      const sec = document.createElement("div");
+      sec.className = "sheetSection";
+
+      const arr = Array.isArray(c.lists[key]) ? c.lists[key] : (c.lists[key] = []);
+      sortStringList(arr);
+
+      const t = document.createElement("div");
+      t.className = "sheetSectionTitle";
+      t.innerHTML = `<div class="sheetH3">${title}</div><span class="pill">${arr.length}</span>`;
+      sec.appendChild(t);
+
+      const list = document.createElement("ul");
+      list.className = "list";
+
+      if (arr.length === 0) {
+        const empty = document.createElement("li");
+        empty.className = "item";
+        empty.innerHTML = `
+          <div class="itemTop">
+            <div>
+              <div class="itemName">None yet</div>
+              <div class="itemNote">Add one below.</div>
+            </div>
+          </div>
+        `;
+        list.appendChild(empty);
+      } else {
+        arr.forEach((val, idx) => {
+          const li = document.createElement("li");
+          li.className = "item";
+
+          const top = document.createElement("div");
+          top.className = "itemTop";
+
+          const left = document.createElement("div");
+          const nm = document.createElement("div");
+          nm.className = "itemName";
+          nm.textContent = val;
+
+          left.appendChild(nm);
+
+          const btns = document.createElement("div");
+          btns.className = "itemBtns";
+
+          const del = document.createElement("button");
+          del.className = "tinyBtn danger";
+          del.textContent = "Delete";
+          del.addEventListener("click", () => {
+            arr.splice(idx, 1);
+            saveState("Updated character list.");
+            renderCharacterSheet();
+          });
+
+          btns.appendChild(del);
+          top.appendChild(left);
+          top.appendChild(btns);
+
+          li.appendChild(top);
+          list.appendChild(li);
+        });
+      }
+
+      sec.appendChild(list);
+
+            const limited = maxCount && arr.length >= maxCount;
+
+// Add row
+      const addRow = document.createElement("div");
+      addRow.className = "addRow";
+
+      const inputWrap = document.createElement("div");
+      const inputLabel = document.createElement("label");
+      inputLabel.textContent = "Add";
+      const input = document.createElement("input");
+      input.placeholder = `Add ${title.toLowerCase()}...`;
+      input.disabled = Boolean(limited);
+      inputWrap.appendChild(inputLabel);
+      inputWrap.appendChild(input);
+
+      const btnWrap = document.createElement("div");
+      const btnLabel = document.createElement("label");
+      btnLabel.innerHTML = "&nbsp;";
+      const addBtn = document.createElement("button");
+      addBtn.className = "secondary";
+      addBtn.textContent = "Add";
+      addBtn.disabled = Boolean(limited);
+      btnWrap.appendChild(btnLabel);
+      btnWrap.appendChild(addBtn);
+
+      
+if (maxCount) {
+  const lim = document.createElement("div");
+  lim.className = "sheetTinyHint";
+  lim.textContent = limited ? `Limit reached (max ${maxCount}).` : `Max ${maxCount}.`;
+  sec.appendChild(lim);
+}
+
+addBtn.addEventListener("click", () => {
+        const v = input.value.trim();
+        if (!v) return;
+
+        const exists = arr.some(x => String(x).toLowerCase() === v.toLowerCase());
+        if (exists) {
+          input.value = "";
+          input.focus();
+          return;
+        }
+
+        
+if (maxCount && arr.length >= maxCount) {
+  alert(`${title} is limited to ${maxCount}. Delete one first.`);
+  input.value = "";
+  input.focus();
+  return;
+}
+
+arr.push(v);
+        sortStringList(arr);
+        saveState("Updated character list.");
+        renderCharacterSheet();
+      });
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addBtn.click();
+        }
+      });
+
+      addRow.appendChild(inputWrap);
+      addRow.appendChild(btnWrap);
+      sec.appendChild(addRow);
+
+      return sec;
+    }
+
+
+    function buildWeaponProficiencySection() {
+      const title = "Weapon Proficiency";
+      const key = "masteries";
+
+      const sec = document.createElement("div");
+      sec.className = "sheetSection";
+
+      // Normalize to objects { name, count }
+      if (!Array.isArray(c.lists[key])) c.lists[key] = [];
+      c.lists[key] = c.lists[key].map(it => {
+        if (typeof it === "string") return { name: it.trim(), count: 0 };
+        return {
+          name: String(it?.name ?? "").trim(),
+          count: clampMin0(Number(it?.count ?? 0) || 0)
+        };
+      }).filter(it => it.name);
+
+      c.lists[key].sort((a, b) => String(a.name).localeCompare(String(b.name)));
+
+      const t = document.createElement("div");
+      t.className = "sheetSectionTitle";
+      t.innerHTML = `<div class="sheetH3">${title}</div><span class="pill">${c.lists[key].length}</span>`;
+      sec.appendChild(t);
+
+      const hint = document.createElement("div");
+      hint.className = "sheetTinyHint";
+      hint.textContent = "Milestones: 3, 8";
+      sec.appendChild(hint);
+
+      const list = document.createElement("ul");
+      list.className = "list";
+      sec.appendChild(list);
+
+      function renderList() {
+        list.innerHTML = "";
+        c.lists[key].sort((a, b) => String(a.name).localeCompare(String(b.name)));
+        t.querySelector(".pill").textContent = String(c.lists[key].length);
+
+        if (c.lists[key].length === 0) {
+          const empty = document.createElement("li");
+          empty.className = "item";
+          empty.innerHTML = `
+            <div class="itemTop">
+              <div class="itemName">None yet.</div>
+            </div>
+            <div class="itemNote">Add one below.</div>
+          `;
+          list.appendChild(empty);
+          return;
+        }
+
+        c.lists[key].forEach((it, idx) => {
+          const li = document.createElement("li");
+          li.className = "item";
+
+          const top = document.createElement("div");
+          top.className = "itemTop";
+
+          const left = document.createElement("div");
+          const nm = document.createElement("div");
+          nm.className = "itemName";
+          nm.textContent = it.name;
+          left.appendChild(nm);
+
+          const btns = document.createElement("div");
+          btns.className = "itemBtns";
+
+          // Counter
+          const tracker = document.createElement("div");
+          tracker.className = "miniTracker";
+
+          const down = document.createElement("button");
+          down.className = "miniBtn warn";
+          down.textContent = "–";
+
+          const val = document.createElement("div");
+          val.className = "value";
+          val.textContent = String(clampMin0(it.count));
+
+          const up = document.createElement("button");
+          up.className = "miniBtn ok";
+          up.textContent = "+";
+
+          down.addEventListener("click", () => {
+            it.count = clampMin0(it.count - 1);
+            val.textContent = String(it.count);
+            saveState("Updated proficiency.");
+          });
+
+          up.addEventListener("click", () => {
+            it.count = clampMin0(it.count + 1);
+            val.textContent = String(it.count);
+            saveState("Updated proficiency.");
+          });
+
+          tracker.appendChild(down);
+          tracker.appendChild(val);
+          tracker.appendChild(up);
+
+          const edit = document.createElement("button");
+          edit.className = "tinyBtn";
+          edit.textContent = "Edit";
+          edit.addEventListener("click", () => {
+            const next = prompt("Rename weapon proficiency:", it.name);
+            if (next === null) return;
+            const v = String(next).trim();
+            if (!v) return;
+            const exists = c.lists[key].some((x, j) => j !== idx && String(x.name).toLowerCase() === v.toLowerCase());
+            if (exists) return alert("That proficiency already exists.");
+            it.name = v;
+            saveState("Updated proficiency.");
+            renderList();
+          });
+
+          const del = document.createElement("button");
+          del.className = "tinyBtn danger";
+          del.textContent = "Delete";
+          del.addEventListener("click", () => {
+            c.lists[key].splice(idx, 1);
+            saveState("Updated proficiency.");
+            renderList();
+          });
+
+          btns.appendChild(tracker);
+          btns.appendChild(edit);
+          btns.appendChild(del);
+
+          top.appendChild(left);
+          top.appendChild(btns);
+
+          li.appendChild(top);
+          list.appendChild(li);
+        });
+      }
+
+      renderList();
+
+      // Add row
+      const addRow = document.createElement("div");
+      addRow.className = "addRow";
+
+      const inputWrap = document.createElement("div");
+      const inputLabel = document.createElement("label");
+      inputLabel.textContent = "Add";
+      const input = document.createElement("input");
+      input.placeholder = "Add weapon proficiency...";
+      inputWrap.appendChild(inputLabel);
+      inputWrap.appendChild(input);
+
+      const btnWrap = document.createElement("div");
+      const btnLabel = document.createElement("label");
+      btnLabel.innerHTML = "&nbsp;";
+      const addBtn = document.createElement("button");
+      addBtn.className = "secondary";
+      addBtn.textContent = "Add";
+      btnWrap.appendChild(btnLabel);
+      btnWrap.appendChild(addBtn);
+
+      addBtn.addEventListener("click", () => {
+        const v = String(input.value || "").trim();
+        if (!v) return;
+
+        const exists = c.lists[key].some(x => String(x.name).toLowerCase() === v.toLowerCase());
+        if (exists) return alert("That proficiency already exists.");
+
+        c.lists[key].push({ name: v, count: 0 });
+        input.value = "";
+        saveState("Updated proficiency.");
+        renderList();
+      });
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addBtn.click();
+        }
+      });
+
+      addRow.appendChild(inputWrap);
+      addRow.appendChild(btnWrap);
+      sec.appendChild(addRow);
+
+      return sec;
+    }
+
+    wrapper.appendChild(buildStringListSection("Fighting Arts", "fightingArts", 3));
+    wrapper.appendChild(buildStringListSection("Disorders", "disorders", 3));
+    wrapper.appendChild(buildStringListSection("Abilities / Impairments", "abilities"));
+    wrapper.appendChild(buildWeaponProficiencySection());
+
+    /******** Gear Loadouts ********/
+    const gearSec = document.createElement("div");
+    gearSec.className = "sheetSection";
+
+    function getActiveLoadout() {
+      let active = c.loadouts.find(l => l.id === c.activeLoadoutId) || c.loadouts[0] || null;
+      if (active && c.activeLoadoutId !== active.id) c.activeLoadoutId = active.id;
+      return active;
+    }
+
+    const gearTitle = document.createElement("div");
+    gearTitle.className = "sheetSectionTitle";
+    gearTitle.innerHTML = `<div class="sheetH3">Gear Loadouts</div><span class="pill">0</span>`;
+    gearSec.appendChild(gearTitle);
+
+    const loadoutRow = document.createElement("div");
+    loadoutRow.className = "row";
+
+    const loSelectWrap = document.createElement("div");
+    const loSelectLabel = document.createElement("label");
+    loSelectLabel.textContent = "Active Loadout";
+    const loSelect = document.createElement("select");
+    loSelectWrap.appendChild(loSelectLabel);
+    loSelectWrap.appendChild(loSelect);
+
+    const loNewWrap = document.createElement("div");
+    const loNewLabel = document.createElement("label");
+    loNewLabel.innerHTML = "&nbsp;";
+    const loNewBtn = document.createElement("button");
+    loNewBtn.className = "secondary";
+    loNewBtn.textContent = "New Loadout";
+    loNewWrap.appendChild(loNewLabel);
+    loNewWrap.appendChild(loNewBtn);
+
+    const loRenameWrap = document.createElement("div");
+    const loRenameLabel = document.createElement("label");
+    loRenameLabel.innerHTML = "&nbsp;";
+    const loRenameBtn = document.createElement("button");
+    loRenameBtn.className = "secondary";
+    loRenameBtn.textContent = "Rename";
+    loRenameWrap.appendChild(loRenameLabel);
+    loRenameWrap.appendChild(loRenameBtn);
+
+    const loDeleteWrap = document.createElement("div");
+    const loDeleteLabel = document.createElement("label");
+    loDeleteLabel.innerHTML = "&nbsp;";
+    const loDeleteBtn = document.createElement("button");
+    loDeleteBtn.className = "secondary danger";
+    loDeleteBtn.textContent = "Delete";
+    loDeleteWrap.appendChild(loDeleteLabel);
+    loDeleteWrap.appendChild(loDeleteBtn);
+
+    loadoutRow.appendChild(loSelectWrap);
+    loadoutRow.appendChild(loNewWrap);
+    loadoutRow.appendChild(loRenameWrap);
+    loadoutRow.appendChild(loDeleteWrap);
+    gearSec.appendChild(loadoutRow);
+
+    const gearList = document.createElement("ul");
+    gearList.className = "list";
+    gearSec.appendChild(gearList);
+
+    const addRow = document.createElement("div");
+    addRow.className = "row";
+
+    const gNameWrap = document.createElement("div");
+    const gNameLabel = document.createElement("label");
+    gNameLabel.textContent = "Gear";
+    const gName = document.createElement("input");
+    gName.placeholder = "e.g., Rawhide Headband";
+    gNameWrap.appendChild(gNameLabel);
+    gNameWrap.appendChild(gName);
+
+    const gQtyWrap = document.createElement("div");
+    const gQtyLabel = document.createElement("label");
+    gQtyLabel.textContent = "Qty";
+    const gQty = document.createElement("input");
+    gQty.type = "number";
+    gQty.className = "numInput";
+    gQty.value = "1";
+    gQtyWrap.appendChild(gQtyLabel);
+    gQtyWrap.appendChild(gQty);
+
+    const gNoteWrap = document.createElement("div");
+    const gNoteLabel = document.createElement("label");
+    gNoteLabel.textContent = "Notes";
+    const gNote = document.createElement("input");
+    gNote.placeholder = "Optional...";
+    gNoteWrap.appendChild(gNoteLabel);
+    gNoteWrap.appendChild(gNote);
+
+    const gAddWrap = document.createElement("div");
+    const gAddLabel = document.createElement("label");
+    gAddLabel.innerHTML = "&nbsp;";
+    const gAddBtn = document.createElement("button");
+    gAddBtn.className = "secondary";
+    gAddBtn.textContent = "Add Gear";
+    gAddWrap.appendChild(gAddLabel);
+    gAddWrap.appendChild(gAddBtn);
+
+    addRow.appendChild(gNameWrap);
+    addRow.appendChild(gQtyWrap);
+    addRow.appendChild(gNoteWrap);
+    addRow.appendChild(gAddWrap);
+
+    gearSec.appendChild(addRow);
+
+    function renderLoadoutPicker() {
+      loSelect.innerHTML = "";
+      c.loadouts.forEach(l => {
+        const opt = document.createElement("option");
+        opt.value = l.id;
+        opt.textContent = l.name;
+        if (l.id === c.activeLoadoutId) opt.selected = true;
+        loSelect.appendChild(opt);
+      });
+      loDeleteBtn.disabled = c.loadouts.length <= 1;
+    }
+
+    function renderGearList() {
+      const lo = getActiveLoadout();
+      const gear = lo?.gear || [];
+      sortGearList(gear);
+
+      gearTitle.querySelector(".pill").textContent = String(gear.length);
+      gearList.innerHTML = "";
+
+      if (!lo) {
+        const empty = document.createElement("li");
+        empty.className = "item";
+        empty.innerHTML = `
+          <div class="itemTop">
+            <div class="itemName">No loadouts.</div>
+          </div>
+          <div class="itemNote">Create one above.</div>
+        `;
+        gearList.appendChild(empty);
+        return;
+      }
+
+      if (gear.length === 0) {
+        const empty = document.createElement("li");
+        empty.className = "item";
+        empty.innerHTML = `
+          <div class="itemTop">
+            <div class="itemName">Empty loadout</div>
+          </div>
+          <div class="itemNote">Add gear below.</div>
+        `;
+        gearList.appendChild(empty);
+        return;
+      }
+
+      gear.forEach((g, idx) => {
+        const li = document.createElement("li");
+        li.className = "item";
+
+        const top = document.createElement("div");
+        top.className = "itemTop";
+
+        const left = document.createElement("div");
+        const nm = document.createElement("div");
+        nm.className = "itemName";
+        nm.textContent = g.name;
+
+        const note = document.createElement("div");
+        note.className = "itemNote";
+        note.textContent = `Qty: ${g.qty}${g.note ? " • " + g.note : ""}`;
+
+        left.appendChild(nm);
+        left.appendChild(note);
+
+        const btns = document.createElement("div");
+        btns.className = "itemBtns";
+
+        const edit = document.createElement("button");
+        edit.className = "tinyBtn";
+        edit.textContent = "Edit";
+        edit.addEventListener("click", () => {
+          const newQty = prompt("Qty:", String(g.qty));
+          if (newQty === null) return;
+          const newNote = prompt("Notes:", String(g.note || ""));
+          if (newNote === null) return;
+
+          g.qty = clampMin0(newQty);
+          g.note = String(newNote || "").trim();
+
+          sortGearList(gear);
+          saveState("Updated gear.");
+          renderCharacterSheet();
+        });
+
+        const del = document.createElement("button");
+        del.className = "tinyBtn danger";
+        del.textContent = "Delete";
+        del.addEventListener("click", () => {
+          const ok = confirm(`Remove "${g.name}" from "${lo.name}"?`);
+          if (!ok) return;
+
+          gear.splice(idx, 1);
+          saveState("Updated gear.");
+          renderCharacterSheet();
+        });
+
+        btns.appendChild(edit);
+        btns.appendChild(del);
+
+        top.appendChild(left);
+        top.appendChild(btns);
+
+        li.appendChild(top);
+        gearList.appendChild(li);
+      });
+    }
+
+    loSelect.addEventListener("change", () => {
+      c.activeLoadoutId = loSelect.value;
+      saveState("Switched loadout.");
+      renderCharacterSheet();
+    });
+
+    loNewBtn.addEventListener("click", () => {
+      const nm = prompt("New loadout name:", "Loadout");
+      if (nm === null) return;
+      const name = String(nm).trim() || "Loadout";
+      const lid = crypto.randomUUID();
+      c.loadouts.push({ id: lid, name, gear: [] });
+      c.activeLoadoutId = lid;
+      saveState("Created loadout.");
+      renderCharacterSheet();
+    });
+
+    loRenameBtn.addEventListener("click", () => {
+      const lo = getActiveLoadout();
+      if (!lo) return;
+      const nm = prompt("Rename loadout:", lo.name);
+      if (nm === null) return;
+      lo.name = String(nm).trim() || lo.name;
+      saveState("Renamed loadout.");
+      renderCharacterSheet();
+    });
+
+    loDeleteBtn.addEventListener("click", () => {
+      if (c.loadouts.length <= 1) return;
+      const lo = getActiveLoadout();
+      if (!lo) return;
+      const ok = confirm(`Delete loadout "${lo.name}"?`);
+      if (!ok) return;
+
+      const idx = c.loadouts.findIndex(x => x.id === lo.id);
+      if (idx >= 0) c.loadouts.splice(idx, 1);
+      if (!c.loadouts.some(l => l.id === c.activeLoadoutId)) {
+        c.activeLoadoutId = c.loadouts[0]?.id ?? null;
+      }
+      saveState("Deleted loadout.");
+      renderCharacterSheet();
+    });
+
+    gAddBtn.addEventListener("click", () => {
+      const lo = getActiveLoadout();
+      if (!lo) return;
+      const nm = gName.value.trim();
+      if (!nm) return;
+
+      const item = {
+        name: nm,
+        qty: clampMin0(gQty.value || 1) || 1,
+        note: gNote.value.trim()
+      };
+
+      lo.gear.push(item);
+      sortGearList(lo.gear);
+      saveState("Added gear.");
+      renderCharacterSheet();
+    });
+
+    gName.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        gAddBtn.click();
+      }
+    });
+
+    renderLoadoutPicker();
+    renderGearList();
+
+    wrapper.appendChild(gearSec);
+
+    /******** Notes ********/
+    const notesSec = document.createElement("div");
+    notesSec.className = "sheetSection";
+    notesSec.innerHTML = `
+      <div class="sheetSectionTitle">
+        <div class="sheetH3">Notes</div>
+        <span class="pill">Freeform</span>
+      </div>
+    `;
+
+    const notesLabel = document.createElement("label");
+    notesLabel.textContent = "Character Notes";
+    const notesBox = document.createElement("textarea");
+    notesBox.value = c.notes || "";
+    notesBox.placeholder = "Anything important for this character...";
+    notesBox.addEventListener("input", () => {
+      c.notes = notesBox.value;
+      saveState("Updated character notes.");
+    });
+
+    notesSec.appendChild(notesLabel);
+    notesSec.appendChild(notesBox);
+
+    wrapper.appendChild(notesSec);
+
+    enhanceSheetSections(wrapper, c);
+    el.characterSheetBody.appendChild(wrapper);
+  }
+
+
+function createListItemElement(section, item, index) {
+    const li = document.createElement("li");
+    li.className = "item";
+
+    const top = document.createElement("div");
+    top.className = "itemTop";
+
+    const left = document.createElement("div");
+
+    let displayName = item.name || "(Unnamed)";
+    let extraLine = "";
+
+    if (LIBRARY_SECTIONS.has(section) && item.refId) {
+      const entry = getLibraryEntry(section, item.refId);
+      displayName = entry ? entry.name : `(Missing) ${item.refId}`;
+      extraLine = entry?.tags?.length ? `Tags: ${entry.tags.join(", ")}` : "";
+    }
+
+    const name = document.createElement("div");
+    name.className = "itemName";
+    name.textContent = displayName;
+
+    left.appendChild(name);
+
+    if (extraLine) {
+      const meta = document.createElement("div");
+      meta.className = "itemNote";
+      meta.textContent = extraLine;
+      left.appendChild(meta);
+    }
+
+    if (item.note) {
+      const note = document.createElement("div");
+      note.className = "itemNote";
+      note.textContent = item.note;
+      left.appendChild(note);
+    }
+
+    const btns = document.createElement("div");
+    btns.className = "itemBtns";
+
+    const editBtn = document.createElement("button");
+    editBtn.className = "tinyBtn";
+    editBtn.textContent = "Edit";
+
+    editBtn.addEventListener("click", () => {
+      const s = getActiveSettlement();
+      const arr = s.lists?.[section] ?? [];
+      const target = arr[index];
+      if (!target) return;
+
+      const newNote = prompt("Edit notes / qty:", target.note ?? "");
+      if (newNote === null) return;
+
+      target.note = newNote.trim();
+      sortSettlementSectionEntries(section);
+      saveState("Updated notes.");
+      renderSection(section);
+    });
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "tinyBtn danger";
+    delBtn.textContent = "Delete";
+    delBtn.addEventListener("click", () => {
+      const s = getActiveSettlement();
+      const items = s.lists?.[section] ?? [];
+      if (!items[index]) return;
+
+      const ok = confirm(`Delete this entry from ${section}?`);
+      if (!ok) return;
+
+      items.splice(index, 1);
+      saveState(`Deleted from ${section}.`);
+      renderSection(section);
+    });
+
+    btns.appendChild(editBtn);
+    btns.appendChild(delBtn);
+
+    top.appendChild(left);
+    top.appendChild(btns);
+
+    li.appendChild(top);
+    return li;
+  }
+
+  function renderSection(section) {
+    const s = getActiveSettlement();
+    const listEl = document.getElementById(`list-${section}`);
+    const countEl = document.getElementById(`count-${section}`);
+
+    const items = s.lists?.[section] ?? [];
+    countEl.textContent = items.length;
+
+    listEl.innerHTML = "";
+    items.forEach((item, idx) => listEl.appendChild(createListItemElement(section, item, idx)));
+  }
+
+  function addLibraryItem(section, refId, note) {
+    const s = getActiveSettlement();
+    if (!s.lists) s.lists = {};
+    if (!Array.isArray(s.lists[section])) s.lists[section] = [];
+
+    s.lists[section].push({ refId, note: (note || "").trim(), name: "" });
+
+    sortSettlementSectionEntries(section);
+    saveState(`Added to ${section}.`);
+    renderSection(section);
+  }
+
+  function matchesSearch(entry, searchText) {
+    if (!searchText) return true;
+    return entry.name.toLowerCase().includes(searchText.toLowerCase());
+  }
+
+  function matchesTags(entry, selectedTagsSet) {
+    if (!selectedTagsSet || selectedTagsSet.size === 0) return true;
+    const tags = new Set(entry.tags || []);
+    for (const t of selectedTagsSet) {
+      if (!tags.has(t)) return false;
+    }
+    return true;
+  }
+
+  function buildPickerUI(section) {
+    const container = document.getElementById(`picker-${section}`);
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    const searchId = `${section}Search`;
+    const chipsId = `${section}TagChips`;
+    const selectId = `${section}Select`;
+    const noteId = `${section}Note`;
+    const addId = `${section}AddBtn`;
+    const hintId = `${section}Hint`;
+
+    const searchWrap = document.createElement("div");
+    const searchLabel = document.createElement("label");
+    searchLabel.setAttribute("for", searchId);
+    searchLabel.textContent = "Search";
+    const searchInput = document.createElement("input");
+    searchInput.id = searchId;
+    searchInput.placeholder = `Type to search ${section}...`;
+    searchInput.value = pickerState[section]?.search ?? "";
+    searchWrap.appendChild(searchLabel);
+    searchWrap.appendChild(searchInput);
+
+    const tagWrap = document.createElement("div");
+    const tagLabel = document.createElement("label");
+    tagLabel.textContent = "Filter by Tags";
+    const chipRow = document.createElement("div");
+    chipRow.className = "chipRow";
+    chipRow.id = chipsId;
+    const tagHint = document.createElement("div");
+    tagHint.className = "hint";
+    tagHint.textContent = "Tap tags to filter. Uses AND filtering (must match all selected tags).";
+    tagWrap.appendChild(tagLabel);
+    tagWrap.appendChild(chipRow);
+    tagWrap.appendChild(tagHint);
+
+    const selectWrap = document.createElement("div");
+    const selectLabel = document.createElement("label");
+    selectLabel.setAttribute("for", selectId);
+    selectLabel.textContent = `Pick a ${singularLabel(section)}`;
+    const selectEl = document.createElement("select");
+    selectEl.id = selectId;
+    selectEl.className = "resultsSelect";
+    selectEl.size = 8;
+    const hint = document.createElement("div");
+    hint.className = "hint";
+    hint.id = hintId;
+    hint.textContent = "—";
+    selectWrap.appendChild(selectLabel);
+    selectWrap.appendChild(selectEl);
+    selectWrap.appendChild(hint);
+
+    const row = document.createElement("div");
+    row.className = "row";
+
+    const noteWrap = document.createElement("div");
+    const noteLabel = document.createElement("label");
+    noteLabel.setAttribute("for", noteId);
+    noteLabel.textContent = "Notes / Qty (optional)";
+    const noteInput = document.createElement("input");
+    noteInput.id = noteId;
+    noteInput.placeholder = "Example: x3, stored, reserved, etc.";
+    noteWrap.appendChild(noteLabel);
+    noteWrap.appendChild(noteInput);
+
+    const addWrap = document.createElement("div");
+    const addLabel = document.createElement("label");
+    addLabel.innerHTML = "&nbsp;";
+    const addBtn = document.createElement("button");
+    addBtn.className = "secondary";
+    addBtn.id = addId;
+    addBtn.textContent = `Add ${singularLabel(section)}`;
+    addWrap.appendChild(addLabel);
+    addWrap.appendChild(addBtn);
+
+    row.appendChild(noteWrap);
+    row.appendChild(addWrap);
+
+    container.appendChild(searchWrap);
+    container.appendChild(tagWrap);
+    container.appendChild(selectWrap);
+    container.appendChild(row);
+
+    searchInput.addEventListener("input", () => {
+      pickerState[section].search = searchInput.value.trim();
+      renderPickerOptions(section);
+    });
+
+    selectEl.addEventListener("change", () => {
+      updatePickerHint(section);
+    });
+
+    addBtn.addEventListener("click", () => {
+      const selectedId = selectEl.value;
+      if (!selectedId) {
+        alert("Pick an option first.");
+        return;
+      }
+      const note = noteInput.value.trim();
+      addLibraryItem(section, selectedId, note);
+      noteInput.value = "";
+      noteInput.focus();
+    });
+
+    noteInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addBtn.click();
+      }
+    });
+
+    renderPickerTagChips(section);
+    renderPickerOptions(section);
+  }
+
+  function renderPickerTagChips(section) {
+    const chipRow = document.getElementById(`${section}TagChips`);
+    if (!chipRow) return;
+
+    const tags = getAllTags(section);
+    chipRow.innerHTML = "";
+
+    tags.forEach(tag => {
+      const chip = document.createElement("div");
+      chip.className = "chip" + (pickerState[section].selectedTags.has(tag) ? " active" : "");
+      chip.textContent = tag;
+
+      chip.addEventListener("click", () => {
+        const set = pickerState[section].selectedTags;
+        if (set.has(tag)) set.delete(tag);
+        else set.add(tag);
+
+        renderPickerTagChips(section);
+        renderPickerOptions(section);
+      });
+
+      chipRow.appendChild(chip);
+    });
+
+    if (tags.length === 0) {
+      const none = document.createElement("div");
+      none.className = "hint";
+      none.textContent = "No tags yet. Add tags to entries in your library.";
+      chipRow.appendChild(none);
+    }
+  }
+
+  function renderPickerOptions(section) {
+    const selectEl = document.getElementById(`${section}Select`);
+    if (!selectEl) return;
+
+    const all = getLibrary(section);
+    const filtered = all
+      .filter(e => matchesSearch(e, pickerState[section].search))
+      .filter(e => matchesTags(e, pickerState[section].selectedTags));
+
+    selectEl.innerHTML = "";
+
+    filtered.forEach(entry => {
+      const opt = document.createElement("option");
+      opt.value = entry.id;
+      opt.textContent = entry.name;
+      selectEl.appendChild(opt);
+    });
+
+    pickerState[section].selectedId = filtered[0]?.id ?? null;
+    if (pickerState[section].selectedId) selectEl.value = pickerState[section].selectedId;
+
+    updatePickerHint(section);
+  }
+
+  function updatePickerHint(section) {
+    const selectEl = document.getElementById(`${section}Select`);
+    const hintEl = document.getElementById(`${section}Hint`);
+    if (!selectEl || !hintEl) return;
+
+    const selectedId = selectEl.value || null;
+    if (!selectedId) {
+      hintEl.textContent = "No results. Clear filters or search something else.";
+      return;
+    }
+
+    const entry = getLibraryEntry(section, selectedId);
+    const tagText = entry?.tags?.length ? entry.tags.join(", ") : "No tags";
+    hintEl.textContent = entry ? `Selected: ${entry.name} • ${tagText}` : `Selected: ${selectedId}`;
+  }
+
+  function createNewSettlement() {
+    const s = defaultSettlement();
+    const name = prompt("Settlement name:", "New Settlement");
+    if (name !== null && name.trim()) s.name = name.trim();
+
+    state.settlements.unshift(s);
+    state.activeSettlementId = s.id;
+
+    saveState("Created new settlement.");
+    renderAll();
+  }
+
+  function exportSave() {
+    const data = {
+      settlements: state.settlements,
+      activeSettlementId: state.activeSettlementId,
+      exportedAt: new Date().toISOString()
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `settlement-save-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    URL.revokeObjectURL(url);
+    setStatus("Exported save file.");
+  }
+
+  function importSaveFile(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+
+        if (!parsed || !Array.isArray(parsed.settlements) || !parsed.activeSettlementId) {
+          throw new Error("Invalid save file");
+        }
+
+        state.settlements = parsed.settlements.map(upgradeSettlementShape);
+        state.activeSettlementId = parsed.activeSettlementId;
+
+        if (!state.settlements.some(s => s.id === state.activeSettlementId)) {
+          state.activeSettlementId = state.settlements[0]?.id ?? null;
+        }
+        if (!state.activeSettlementId) {
+          const s = defaultSettlement();
+          state.settlements = [s];
+          state.activeSettlementId = s.id;
+        }
+
+        saveState("Imported save file.");
+        renderAll();
+      } catch (err) {
+        alert("Import failed. That file doesn't look like a valid save.");
+        console.warn(err);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function renderAll() {
+    const active = getActiveSettlement();
+    state.activeSettlementId = active.id;
+
+    sortAllLibraryLists();
+
+    renderSettlementSelect();
+    renderHeaderFields();
+    renderYearTracker();
+    renderPopulation();
+
+    ALL_SECTIONS.forEach(renderSection);
+    renderCharacters();
+    renderCharacterSheet();
+
+    for (const sec of LIBRARY_SECTIONS) buildPickerUI(sec);
+  }
+
+  // Tabs
+  el.tabSettlement.addEventListener("click", () => setTab("settlement"));
+  el.tabCharacters.addEventListener("click", () => setTab("characters"));
+
+  // Settlement select
+  el.settlementSelect.addEventListener("change", (e) => setActiveSettlement(e.target.value));
+  el.newSettlementBtn.addEventListener("click", createNewSettlement);
+
+  // Settlement name + notes
+  el.settlementName.addEventListener("input", () => {
+    const s = getActiveSettlement();
+    s.name = el.settlementName.value.trim() || "Unnamed Settlement";
+    saveState("Updated settlement name.");
+    renderSettlementSelect();
+  });
+
+  el.settlementNotes.addEventListener("input", () => {
+    const s = getActiveSettlement();
+    s.notes = el.settlementNotes.value;
+    saveState("Updated notes.");
+  });
+
+  // Year tracker
+  el.yearContainer.addEventListener("change", (e) => {
+    const target = e.target;
+    if (!(target instanceof HTMLElement)) return;
+
+    const action = target.dataset.action;
+    const idx = Number(target.dataset.yearIndex);
+
+    const s = getActiveSettlement();
+    if (!s.yearTracker || !s.yearTracker[idx]) return;
+
+    if (action === "toggleYear" && target instanceof HTMLInputElement) {
+      s.yearTracker[idx].reached = target.checked;
+      saveState("Updated year.");
+      renderYearTracker();
+    }
+  });
+
+  el.yearContainer.addEventListener("input", (e) => {
+    const target = e.target;
+    if (!(target instanceof HTMLElement)) return;
+
+    const action = target.dataset.action;
+    const idx = Number(target.dataset.yearIndex);
+
+    const s = getActiveSettlement();
+    if (!s.yearTracker || !s.yearTracker[idx]) return;
+
+    if (action === "editYearEvent" && target instanceof HTMLTextAreaElement) {
+      s.yearTracker[idx].event = target.value;
+      saveState("Updated year event.");
+    }
+  });
+
+  // Manual population total
+  el.popUp.addEventListener("click", () => {
+    const s = getActiveSettlement();
+    s.populationManual = Math.max(0, (s.populationManual ?? 0) + 1);
+    saveState("Updated manual population total.");
+    renderPopulation();
+  });
+
+  el.popDown.addEventListener("click", () => {
+    const s = getActiveSettlement();
+    s.populationManual = Math.max(0, (s.populationManual ?? 0) - 1);
+    saveState("Updated manual population total.");
+    renderPopulation();
+  });
+
+  // Survival Limit
+  el.survivalUp.addEventListener("click", () => {
+    const s = getActiveSettlement();
+    s.survivalLimit = Math.max(0, (s.survivalLimit ?? 0) + 1);
+    el.survivalValue.textContent = String(s.survivalLimit);
+    saveState("Updated survival limit.");
+  });
+
+  el.survivalDown.addEventListener("click", () => {
+    const s = getActiveSettlement();
+    s.survivalLimit = Math.max(0, (s.survivalLimit ?? 0) - 1);
+    el.survivalValue.textContent = String(s.survivalLimit);
+    saveState("Updated survival limit.");
+  });
+
+  // Lost Settlements
+  el.lostUp.addEventListener("click", () => {
+    const s = getActiveSettlement();
+    s.lostSettlements = Math.max(0, (s.lostSettlements ?? 0) + 1);
+    el.lostValue.textContent = String(s.lostSettlements);
+    saveState("Updated lost settlements.");
+  });
+
+  el.lostDown.addEventListener("click", () => {
+    const s = getActiveSettlement();
+    s.lostSettlements = Math.max(0, (s.lostSettlements ?? 0) - 1);
+    el.lostValue.textContent = String(s.lostSettlements);
+    saveState("Updated lost settlements.");
+  });
+
+  // Lantern Research Level
+  el.lanternUp.addEventListener("click", () => {
+    const s = getActiveSettlement();
+    s.lanternResearchLevel = Math.max(0, (s.lanternResearchLevel ?? 0) + 1);
+    el.lanternValue.textContent = String(s.lanternResearchLevel);
+    saveState("Updated lantern research level.");
+  });
+
+  el.lanternDown.addEventListener("click", () => {
+    const s = getActiveSettlement();
+    s.lanternResearchLevel = Math.max(0, (s.lanternResearchLevel ?? 0) - 1);
+    el.lanternValue.textContent = String(s.lanternResearchLevel);
+    saveState("Updated lantern research level.");
+  });
+
+  // Characters
+  el.addCharacterBtn.addEventListener("click", () => {
+    const firstName = el.charFirstName.value.trim();
+    const lastName = el.charLastName.value.trim();
+    const nickname = el.charNickname.value.trim();
+    const gender = el.charGender.value;
+
+    if (!firstName && !lastName && !nickname) {
+      alert("Enter at least a first name, last name, or nickname.");
+      return;
+    }
+
+    addCharacter(firstName, lastName, nickname, gender);
+
+    el.charFirstName.value = "";
+    el.charLastName.value = "";
+    el.charNickname.value = "";
+    el.charFirstName.focus();
+  });
+
+  [el.charFirstName, el.charLastName, el.charNickname].forEach(inp => {
+    inp.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        el.addCharacterBtn.click();
+      }
+    });
+  });
+
+  // Export / Import
+  el.exportBtn.addEventListener("click", exportSave);
+  el.importBtn.addEventListener("click", () => el.importFile.click());
+  el.importFile.addEventListener("change", (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    importSaveFile(file);
+    e.target.value = "";
+  });
+
+  
+
+  /***********************
+   * UI Enhancements
+   * - Accent stripes (per section)
+   * - Collapsible cards + character sections
+   ***********************/
+  function stripeForTitle(title) {
+    const t = String(title || "").toLowerCase().trim();
+
+    // Settlement Sheet
+    if (t === "settlement") return "rgba(229,57,53,0.75)";
+    if (t === "year") return "rgba(243,156,18,0.75)";
+    if (t === "population") return "rgba(46,204,113,0.70)";
+    if (t === "gear") return "rgba(79,195,247,0.60)";
+    if (t === "resources") return "rgba(155,89,182,0.60)";
+    if (t === "locations") return "rgba(26,188,156,0.60)";
+    if (t === "innovations") return "rgba(241,196,15,0.60)";
+    if (t === "quarry") return "rgba(52,152,219,0.60)";
+    if (t === "nemesis") return "rgba(255,77,77,0.55)";
+    if (t === "principles") return "rgba(189,189,189,0.45)";
+
+    // Characters tab
+    if (t === "characters") return "rgba(52,152,219,0.55)";
+    if (t === "character sheet") return "rgba(229,57,53,0.60)";
+
+    return "rgba(229,57,53,0.45)";
+  }
+
+  function stripeForSection(title) {
+    const t = String(title || "").toLowerCase().trim();
+
+    if (t === "basics") return "rgba(229,57,53,0.60)";
+    if (t === "triumphs") return "rgba(243,156,18,0.60)";
+    if (t === "survival actions") return "rgba(241,196,15,0.55)";
+    if (t === "armor") return "rgba(79,195,247,0.55)";
+    if (t === "stats") return "rgba(155,89,182,0.55)";
+    if (t === "fighting arts") return "rgba(46,204,113,0.55)";
+    if (t === "disorders") return "rgba(255,77,77,0.50)";
+    if (t === "abilities / impairments") return "rgba(26,188,156,0.55)";
+    if (t === "weapon proficiency") return "rgba(52,152,219,0.55)";
+    if (t === "gear loadouts") return "rgba(189,189,189,0.45)";
+    if (t === "notes") return "rgba(189,189,189,0.35)";
+
+    return "rgba(229,57,53,0.35)";
+  }
+
+  function enhanceCollapsibleCard(card) {
+    if (!card || card.dataset.collapsible === "1") return;
+
+    const titleEl = card.querySelector(".cardTitle");
+    if (!titleEl) return;
+
+    // Wrap body content so we can hide/show it
+    const body = document.createElement("div");
+    body.className = "cardBody";
+
+    while (titleEl.nextSibling) body.appendChild(titleEl.nextSibling);
+    card.appendChild(body);
+
+    // Right-side controls (pill + toggle)
+    const pill = titleEl.querySelector(".pill");
+    const right = document.createElement("div");
+    right.className = "cardRight";
+
+    if (pill) right.appendChild(pill);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "collapseToggle";
+    btn.title = "Collapse / Expand";
+    btn.textContent = "▾";
+
+    right.appendChild(btn);
+    titleEl.appendChild(right);
+
+    // Accent stripe
+    const titleText = titleEl.querySelector("h2")?.textContent || "";
+    card.style.setProperty("--stripe", stripeForTitle(titleText));
+
+    // Persist state
+    const keyBase = (card.id || titleText || "card").replace(/\s+/g, "_").toLowerCase();
+    const key = `kdm_card_collapsed_${keyBase}`;
+    const saved = localStorage.getItem(key);
+
+    if (saved === "1") {
+      card.classList.add("collapsed");
+      btn.textContent = "▸";
+    }
+
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      card.classList.toggle("collapsed");
+      const isCollapsed = card.classList.contains("collapsed");
+      btn.textContent = isCollapsed ? "▸" : "▾";
+      localStorage.setItem(key, isCollapsed ? "1" : "0");
+    });
+
+    card.dataset.collapsible = "1";
+  }
+
+  function enhanceCollapsibleSection(sectionEl, characterId = "") {
+    if (!sectionEl || sectionEl.dataset.collapsible === "1") return;
+
+    const title = sectionEl.querySelector(".sheetSectionTitle");
+    if (!title) return;
+
+    // Wrap body content
+    const body = document.createElement("div");
+    body.className = "sheetSectionBody";
+
+    while (title.nextSibling) body.appendChild(title.nextSibling);
+    sectionEl.appendChild(body);
+
+    // Right-side controls
+    const pill = title.querySelector(".pill");
+    const right = document.createElement("div");
+    right.className = "sectionRight";
+
+    if (pill) right.appendChild(pill);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "sectionCollapseToggle";
+    btn.title = "Collapse / Expand";
+    btn.textContent = "▾";
+    right.appendChild(btn);
+
+    title.appendChild(right);
+
+    // Stripe
+    const titleText = title.querySelector(".sheetH3")?.textContent || "";
+    sectionEl.style.setProperty("--stripe", stripeForSection(titleText));
+
+    // Persist state per character + section
+    const keyBase = `${characterId}__${titleText}`.replace(/\s+/g, "_").toLowerCase();
+    const key = `kdm_section_collapsed_${keyBase}`;
+    const saved = localStorage.getItem(key);
+
+    if (saved === "1") {
+      sectionEl.classList.add("collapsed");
+      btn.textContent = "▸";
+    }
+
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      sectionEl.classList.toggle("collapsed");
+      const isCollapsed = sectionEl.classList.contains("collapsed");
+      btn.textContent = isCollapsed ? "▸" : "▾";
+      localStorage.setItem(key, isCollapsed ? "1" : "0");
+    });
+
+    sectionEl.dataset.collapsible = "1";
+  }
+
+  function enhanceSheetSections(rootEl, characterObj = null) {
+    if (!rootEl) return;
+    const charId = characterObj?.id ? String(characterObj.id).slice(0, 8) : "";
+    rootEl.querySelectorAll(".sheetSection").forEach(sec => enhanceCollapsibleSection(sec, charId));
+  }
+
+  function enhanceUI() {
+    document.querySelectorAll("section.card").forEach(enhanceCollapsibleCard);
+  }
+
+// Boot
+  (async function boot() {
+    loadState();
+    await preloadFirestoreLibrary(); // currently Resources only
+    renderAll();
+    enhanceUI();
+    setTab("settlement");
+  })();
+</script>
+</body>
+</html>
